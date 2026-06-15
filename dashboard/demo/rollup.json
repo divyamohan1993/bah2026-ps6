@@ -29,22 +29,22 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 53,
-    "watch": 7,
+    "no_irrigation": 52,
+    "watch": 8,
     "irrigate_soon": 0,
     "irrigate_now": 0,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 88.3,
-    "watch": 11.7,
+    "no_irrigation": 86.7,
+    "watch": 13.3,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 101.6,
-    "watch": 14.2,
+    "no_irrigation": 98.9,
+    "watch": 17.0,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
@@ -61,22 +61,22 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 58,
-    "watch": 2,
+    "no_irrigation": 57,
+    "watch": 3,
     "irrigate_soon": 0,
     "irrigate_now": 0,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 96.7,
-    "watch": 3.3,
+    "no_irrigation": 95.0,
+    "watch": 5.0,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 111.9,
-    "watch": 3.9,
+    "no_irrigation": 109.9,
+    "watch": 5.9,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
@@ -93,22 +93,22 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 60,
-    "watch": 0,
+    "no_irrigation": 59,
+    "watch": 1,
     "irrigate_soon": 0,
     "irrigate_now": 0,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 100.0,
-    "watch": 0.0,
+    "no_irrigation": 98.3,
+    "watch": 1.7,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 115.8,
-    "watch": 0.0,
+    "no_irrigation": 113.0,
+    "watch": 2.8,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
@@ -189,22 +189,22 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 60,
-    "watch": 0,
+    "no_irrigation": 59,
+    "watch": 1,
     "irrigate_soon": 0,
     "irrigate_now": 0,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 100.0,
-    "watch": 0.0,
+    "no_irrigation": 98.3,
+    "watch": 1.7,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 115.8,
-    "watch": 0.0,
+    "no_irrigation": 113.0,
+    "watch": 2.8,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
@@ -221,22 +221,22 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 59,
-    "watch": 1,
+    "no_irrigation": 58,
+    "watch": 2,
     "irrigate_soon": 0,
     "irrigate_now": 0,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 98.3,
-    "watch": 1.7,
+    "no_irrigation": 96.7,
+    "watch": 3.3,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 113.0,
-    "watch": 2.8,
+    "no_irrigation": 112.0,
+    "watch": 3.9,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
@@ -253,22 +253,22 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 59,
-    "watch": 1,
+    "no_irrigation": 48,
+    "watch": 12,
     "irrigate_soon": 0,
     "irrigate_now": 0,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 98.3,
-    "watch": 1.7,
+    "no_irrigation": 80.0,
+    "watch": 20.0,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 113.0,
-    "watch": 2.8,
+    "no_irrigation": 91.6,
+    "watch": 24.2,
     "irrigate_soon": 0.0,
     "irrigate_now": 0.0,
     "critical": 0.0
@@ -285,28 +285,28 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 50,
-    "watch": 9,
-    "irrigate_soon": 1,
-    "irrigate_now": 0,
+    "no_irrigation": 41,
+    "watch": 10,
+    "irrigate_soon": 4,
+    "irrigate_now": 5,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 83.3,
-    "watch": 15.0,
-    "irrigate_soon": 1.7,
-    "irrigate_now": 0.0,
+    "no_irrigation": 68.3,
+    "watch": 16.7,
+    "irrigate_soon": 6.7,
+    "irrigate_now": 8.3,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 94.1,
-    "watch": 19.0,
-    "irrigate_soon": 2.8,
-    "irrigate_now": 0.0,
+    "no_irrigation": 80.5,
+    "watch": 15.6,
+    "irrigate_soon": 8.2,
+    "irrigate_now": 11.4,
     "critical": 0.0
    },
-   "gross_demand_m3": 517.0,
-   "gross_demand_ham": 0.1,
+   "gross_demand_m3": 3799.0,
+   "gross_demand_ham": 0.4,
    "warabandi_cycle_days": 7,
    "warabandi_turn_min_per_ha": 38
   },
@@ -317,28 +317,28 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 47,
-    "watch": 9,
-    "irrigate_soon": 3,
-    "irrigate_now": 1,
-    "critical": 0
+    "no_irrigation": 29,
+    "watch": 26,
+    "irrigate_soon": 1,
+    "irrigate_now": 2,
+    "critical": 2
    },
    "advisory_pct": {
-    "no_irrigation": 78.3,
-    "watch": 15.0,
-    "irrigate_soon": 5.0,
-    "irrigate_now": 1.7,
-    "critical": 0.0
+    "no_irrigation": 48.3,
+    "watch": 43.3,
+    "irrigate_soon": 1.7,
+    "irrigate_now": 3.3,
+    "critical": 3.3
    },
    "advisory_area_ha": {
-    "no_irrigation": 90.1,
-    "watch": 15.8,
-    "irrigate_soon": 7.2,
-    "irrigate_now": 2.8,
-    "critical": 0.0
+    "no_irrigation": 56.9,
+    "watch": 48.4,
+    "irrigate_soon": 2.4,
+    "irrigate_now": 3.8,
+    "critical": 4.4
    },
-   "gross_demand_m3": 1759.0,
-   "gross_demand_ham": 0.2,
+   "gross_demand_m3": 3021.0,
+   "gross_demand_ham": 0.3,
    "warabandi_cycle_days": 7,
    "warabandi_turn_min_per_ha": 38
   },
@@ -349,28 +349,28 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 41,
-    "watch": 12,
-    "irrigate_soon": 3,
-    "irrigate_now": 4,
+    "no_irrigation": 18,
+    "watch": 28,
+    "irrigate_soon": 7,
+    "irrigate_now": 7,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 68.3,
-    "watch": 20.0,
-    "irrigate_soon": 5.0,
-    "irrigate_now": 6.7,
+    "no_irrigation": 30.0,
+    "watch": 46.7,
+    "irrigate_soon": 11.7,
+    "irrigate_now": 11.7,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 80.5,
-    "watch": 19.5,
-    "irrigate_soon": 5.8,
-    "irrigate_now": 9.9,
+    "no_irrigation": 33.6,
+    "watch": 57.1,
+    "irrigate_soon": 12.6,
+    "irrigate_now": 12.4,
     "critical": 0.0
    },
-   "gross_demand_m3": 2470.0,
-   "gross_demand_ham": 0.2,
+   "gross_demand_m3": 6598.0,
+   "gross_demand_ham": 0.7,
    "warabandi_cycle_days": 7,
    "warabandi_turn_min_per_ha": 38
   },
@@ -381,28 +381,28 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 41,
-    "watch": 17,
-    "irrigate_soon": 2,
-    "irrigate_now": 0,
+    "no_irrigation": 16,
+    "watch": 34,
+    "irrigate_soon": 9,
+    "irrigate_now": 1,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 68.3,
-    "watch": 28.3,
-    "irrigate_soon": 3.3,
-    "irrigate_now": 0.0,
+    "no_irrigation": 26.7,
+    "watch": 56.7,
+    "irrigate_soon": 15.0,
+    "irrigate_now": 1.7,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 78.8,
-    "watch": 34.7,
-    "irrigate_soon": 2.3,
-    "irrigate_now": 0.0,
+    "no_irrigation": 29.9,
+    "watch": 64.6,
+    "irrigate_soon": 20.2,
+    "irrigate_now": 1.1,
     "critical": 0.0
    },
-   "gross_demand_m3": 459.0,
-   "gross_demand_ham": 0.0,
+   "gross_demand_m3": 6680.0,
+   "gross_demand_ham": 0.7,
    "warabandi_cycle_days": 7,
    "warabandi_turn_min_per_ha": 38
   },
@@ -413,28 +413,28 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 41,
-    "watch": 16,
-    "irrigate_soon": 2,
-    "irrigate_now": 1,
+    "no_irrigation": 15,
+    "watch": 33,
+    "irrigate_soon": 8,
+    "irrigate_now": 4,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 68.3,
-    "watch": 26.7,
-    "irrigate_soon": 3.3,
-    "irrigate_now": 1.7,
+    "no_irrigation": 25.0,
+    "watch": 55.0,
+    "irrigate_soon": 13.3,
+    "irrigate_now": 6.7,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 79.4,
-    "watch": 33.0,
-    "irrigate_soon": 2.1,
-    "irrigate_now": 1.3,
+    "no_irrigation": 28.0,
+    "watch": 61.8,
+    "irrigate_soon": 17.3,
+    "irrigate_now": 8.7,
     "critical": 0.0
    },
-   "gross_demand_m3": 1047.0,
-   "gross_demand_ham": 0.1,
+   "gross_demand_m3": 8759.0,
+   "gross_demand_ham": 0.9,
    "warabandi_cycle_days": 7,
    "warabandi_turn_min_per_ha": 38
   },
@@ -445,28 +445,28 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 41,
-    "watch": 17,
-    "irrigate_soon": 1,
-    "irrigate_now": 1,
+    "no_irrigation": 19,
+    "watch": 27,
+    "irrigate_soon": 11,
+    "irrigate_now": 3,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 68.3,
-    "watch": 28.3,
-    "irrigate_soon": 1.7,
-    "irrigate_now": 1.7,
+    "no_irrigation": 31.7,
+    "watch": 45.0,
+    "irrigate_soon": 18.3,
+    "irrigate_now": 5.0,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 77.9,
-    "watch": 34.4,
-    "irrigate_soon": 2.5,
-    "irrigate_now": 1.0,
+    "no_irrigation": 37.1,
+    "watch": 47.0,
+    "irrigate_soon": 25.2,
+    "irrigate_now": 6.5,
     "critical": 0.0
    },
-   "gross_demand_m3": 1336.0,
-   "gross_demand_ham": 0.1,
+   "gross_demand_m3": 10569.0,
+   "gross_demand_ham": 1.1,
    "warabandi_cycle_days": 7,
    "warabandi_turn_min_per_ha": 38
   },
@@ -477,28 +477,28 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 42,
-    "watch": 16,
-    "irrigate_soon": 2,
-    "irrigate_now": 0,
+    "no_irrigation": 19,
+    "watch": 29,
+    "irrigate_soon": 9,
+    "irrigate_now": 3,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 70.0,
-    "watch": 26.7,
-    "irrigate_soon": 3.3,
-    "irrigate_now": 0.0,
+    "no_irrigation": 31.7,
+    "watch": 48.3,
+    "irrigate_soon": 15.0,
+    "irrigate_now": 5.0,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 77.4,
-    "watch": 33.2,
-    "irrigate_soon": 5.2,
-    "irrigate_now": 0.0,
+    "no_irrigation": 40.8,
+    "watch": 47.4,
+    "irrigate_soon": 21.1,
+    "irrigate_now": 6.5,
     "critical": 0.0
    },
-   "gross_demand_m3": 1275.0,
-   "gross_demand_ham": 0.1,
+   "gross_demand_m3": 10041.0,
+   "gross_demand_ham": 1.0,
    "warabandi_cycle_days": 7,
    "warabandi_turn_min_per_ha": 38
   },
@@ -509,28 +509,28 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 42,
-    "watch": 16,
-    "irrigate_soon": 2,
-    "irrigate_now": 0,
+    "no_irrigation": 15,
+    "watch": 34,
+    "irrigate_soon": 7,
+    "irrigate_now": 4,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 70.0,
-    "watch": 26.7,
-    "irrigate_soon": 3.3,
-    "irrigate_now": 0.0,
+    "no_irrigation": 25.0,
+    "watch": 56.7,
+    "irrigate_soon": 11.7,
+    "irrigate_now": 6.7,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 79.3,
-    "watch": 31.3,
-    "irrigate_soon": 5.2,
-    "irrigate_now": 0.0,
+    "no_irrigation": 33.0,
+    "watch": 57.4,
+    "irrigate_soon": 17.4,
+    "irrigate_now": 8.1,
     "critical": 0.0
    },
-   "gross_demand_m3": 1404.0,
-   "gross_demand_ham": 0.1,
+   "gross_demand_m3": 10572.0,
+   "gross_demand_ham": 1.1,
    "warabandi_cycle_days": 7,
    "warabandi_turn_min_per_ha": 38
   },
@@ -541,28 +541,28 @@
    "n_fields": 60,
    "total_area_ha": 115.8,
    "advisory_counts": {
-    "no_irrigation": 44,
-    "watch": 14,
-    "irrigate_soon": 2,
-    "irrigate_now": 0,
+    "no_irrigation": 21,
+    "watch": 31,
+    "irrigate_soon": 7,
+    "irrigate_now": 1,
     "critical": 0
    },
    "advisory_pct": {
-    "no_irrigation": 73.3,
-    "watch": 23.3,
-    "irrigate_soon": 3.3,
-    "irrigate_now": 0.0,
+    "no_irrigation": 35.0,
+    "watch": 51.7,
+    "irrigate_soon": 11.7,
+    "irrigate_now": 1.7,
     "critical": 0.0
    },
    "advisory_area_ha": {
-    "no_irrigation": 86.0,
-    "watch": 24.6,
-    "irrigate_soon": 5.2,
-    "irrigate_now": 0.0,
+    "no_irrigation": 44.0,
+    "watch": 57.1,
+    "irrigate_soon": 12.0,
+    "irrigate_now": 2.8,
     "critical": 0.0
    },
-   "gross_demand_m3": 1298.0,
-   "gross_demand_ham": 0.1,
+   "gross_demand_m3": 5976.0,
+   "gross_demand_ham": 0.6,
    "warabandi_cycle_days": 7,
    "warabandi_turn_min_per_ha": 38
   }
