@@ -15,20 +15,20 @@ Status classes
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Iterable, Optional, Sequence
 
 import numpy as np
 
 __all__ = [
-    "IrrigationStatus",
     "Advisory",
-    "IrrigationAdvisory",
-    "FieldAdvisory",
     "CommandAreaPlan",
-    "aggregate_to_command",
+    "FieldAdvisory",
+    "IrrigationAdvisory",
+    "IrrigationStatus",
     "advisory_map",
+    "aggregate_to_command",
 ]
 
 
@@ -55,10 +55,10 @@ class Advisory:
     raw: float
     taw: float
     ks: float
-    dnet: float                 # net irrigation depth to refill to FC [mm]
-    dgross: float               # gross depth = dnet / Ea [mm]
-    days_to_trigger: float      # days until Dr reaches RAW at current ETc (>=0)
-    depletion_fraction: float   # Dr / TAW [-]
+    dnet: float  # net irrigation depth to refill to FC [mm]
+    dgross: float  # gross depth = dnet / Ea [mm]
+    days_to_trigger: float  # days until Dr reaches RAW at current ETc (>=0)
+    depletion_fraction: float  # Dr / TAW [-]
     growth_stage: str
     recommendation: str
     ponded: bool = False
@@ -69,7 +69,7 @@ class Advisory:
 _STAGE_P_SCALE = {
     "ini": 1.10,
     "dev": 1.00,
-    "mid": 0.85,     # flowering / reproductive — irrigate earlier
+    "mid": 0.85,  # flowering / reproductive — irrigate earlier
     "flowering": 0.80,
     "reproductive": 0.80,
     "late": 1.05,
@@ -107,7 +107,7 @@ class IrrigationAdvisory:
         dr: float,
         taw: float,
         p: float = 0.5,
-        ks: Optional[float] = None,
+        ks: float | None = None,
         growth_stage: str = "mid",
         etc: float = 0.0,
         ponded: bool = False,
@@ -183,14 +183,14 @@ class IrrigationAdvisory:
             s = IrrigationStatus.CRITICAL
             rec = (
                 f"CRITICAL water stress ({stage}): Ks={ks:.2f}, depletion "
-                f"{depl_frac*100:.0f}% of TAW. Irrigate immediately (net "
-                f"{max(dr,0):.0f} mm) to avoid yield loss."
+                f"{depl_frac * 100:.0f}% of TAW. Irrigate immediately (net "
+                f"{max(dr, 0):.0f} mm) to avoid yield loss."
             )
         elif dr >= raw:
             s = IrrigationStatus.IRRIGATE_NOW
             rec = (
                 f"Depletion has reached RAW ({dr:.0f}>={raw:.0f} mm) at {stage}. "
-                f"Irrigate now (net {max(dr,0):.0f} mm)."
+                f"Irrigate now (net {max(dr, 0):.0f} mm)."
             )
         elif dr >= soon_thr:
             s = IrrigationStatus.IRRIGATE_SOON
@@ -207,14 +207,11 @@ class IrrigationAdvisory:
         else:
             s = IrrigationStatus.NO_IRRIGATION
             rec = (
-                f"Root zone near field capacity (Dr={dr:.0f} mm) at {stage}. "
-                f"No irrigation needed."
+                f"Root zone near field capacity (Dr={dr:.0f} mm) at {stage}. No irrigation needed."
             )
         return s, rec
 
-    def _classify_ponded(
-        self, dr, raw, taw, stage
-    ) -> tuple[IrrigationStatus, str]:
+    def _classify_ponded(self, dr, raw, taw, stage) -> tuple[IrrigationStatus, str]:
         """Paddy-rice branch: maintain ponding, allow shallow AWD draw-down.
 
         For lowland rice the target is a thin ponded layer; once the depletion
@@ -222,13 +219,12 @@ class IrrigationAdvisory:
         surface) re-flood. Maturity stage permits final dry-down.
         """
         s_lower = str(stage).strip().lower()
-        if s_lower in ("late", "maturity", "senescence"):
-            # terminal drainage for harvest
-            if dr >= raw:
-                return (
-                    IrrigationStatus.NO_IRRIGATION,
-                    f"Rice at {stage}: terminal drainage — stop irrigation for harvest.",
-                )
+        # terminal drainage for harvest
+        if s_lower in ("late", "maturity", "senescence") and dr >= raw:
+            return (
+                IrrigationStatus.NO_IRRIGATION,
+                f"Rice at {stage}: terminal drainage — stop irrigation for harvest.",
+            )
         if dr >= taw * 0.90:
             return (
                 IrrigationStatus.CRITICAL,
@@ -260,6 +256,7 @@ class IrrigationAdvisory:
 
 # --- command-area aggregation ----------------------------------------------------
 
+
 @dataclass
 class FieldAdvisory:
     """One command-area parcel: its advisory plus geometry / routing metadata."""
@@ -280,7 +277,7 @@ class CommandAreaPlan:
     outlet_discharge_m3s: float
     n_fields: int
     n_need_irrigation: int
-    order: list[str] = field(default_factory=list)         # field_ids, delivery order
+    order: list[str] = field(default_factory=list)  # field_ids, delivery order
     per_field_volume_m3: dict[str, float] = field(default_factory=dict)
     per_field_hours: dict[str, float] = field(default_factory=dict)
 
@@ -337,7 +334,7 @@ def aggregate_to_command(
             per_vol[fa.field_id] = 0.0
             per_hours[fa.field_id] = 0.0
             continue
-        vol = fa.advisory.dgross * fa.area_ha * 10.0   # mm*ha -> m3
+        vol = fa.advisory.dgross * fa.area_ha * 10.0  # mm*ha -> m3
         per_vol[fa.field_id] = vol
         per_hours[fa.field_id] = vol / outlet_discharge_q / 3600.0
         total_volume += vol
@@ -373,12 +370,13 @@ def aggregate_to_command(
 
 # --- vectorised raster classification -------------------------------------------
 
+
 def advisory_map(
     deficit_array: np.ndarray,
     raw_array: np.ndarray,
-    ks_array: Optional[np.ndarray] = None,
-    stage_array: Optional[np.ndarray] = None,
-    taw_array: Optional[np.ndarray] = None,
+    ks_array: np.ndarray | None = None,
+    stage_array: np.ndarray | None = None,
+    taw_array: np.ndarray | None = None,
     *,
     soon_fraction: float = 0.75,
     watch_fraction: float = 0.40,
@@ -436,10 +434,7 @@ def advisory_map(
     out[crit] = IrrigationStatus.CRITICAL
 
     # nodata handling
-    if np.isnan(nodata):
-        nd = np.isnan(dr)
-    else:
-        nd = dr == nodata
+    nd = np.isnan(dr) if np.isnan(nodata) else dr == nodata
     out[nd] = -1
 
     return out

@@ -110,7 +110,7 @@ def downscale_smap_with_s1(ee: Any, smap_img: Any, s1_img: Any, aoi: Any, scale:
     beta = 0.02  # volumetric-SM per dB sensitivity (illustrative)
     anomaly = vv.subtract(vv_mean).multiply(beta)
     sm_high = sm_mean.add(anomaly).rename("sm_surface_downscaled").clamp(0.0, 0.6)
-    return sm_high.set("scale_m", scale)
+    return sm_high.clip(geom).set("scale_m", scale)
 
 
 def imerg_rainfall(ee: Any, aoi: Any, start: str, end: str) -> Any:
@@ -167,7 +167,7 @@ def main(aoi: Any = None, start: str = "2023-06-01", end: str = "2023-11-30", pr
     rain_chirps = chirps_rainfall(ee, aoi, start, end)
     et0_inputs = era5_et0_inputs(ee, aoi, start, end)
     try:
-        print(f"[gee/04] SMAP SM (surface+rootzone), IMERG+CHIRPS rainfall, ERA5-Land ET0 forcing built")
+        print("[gee/04] SMAP SM (surface+rootzone), IMERG+CHIRPS rainfall, ERA5-Land ET0 forcing built")
         print(f"[gee/04] SMAP composites: {sm.size().getInfo()}; ERA5 fields: {ERA5_ET0_BANDS}")
     except Exception as exc:  # pragma: no cover
         print(f"[gee/04] built SM/rain/ET0 (getInfo skipped: {exc})")

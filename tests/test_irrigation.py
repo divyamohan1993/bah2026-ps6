@@ -7,17 +7,24 @@ documented water-balance identities (TAW/RAW/Ks, 8-day deficit, advisory).
 from __future__ import annotations
 
 import math
+from typing import ClassVar
 
 import numpy as np
 import pytest
 
+from agristress.irrigation.advisory import (
+    FieldAdvisory,
+    IrrigationAdvisory,
+    IrrigationStatus,
+    advisory_map,
+    aggregate_to_command,
+)
 from agristress.irrigation.et0 import (
     actual_vapour_pressure,
     atmospheric_pressure,
     et0_hargreaves,
     et0_penman_monteith,
     extraterrestrial_radiation,
-    mean_saturation_vapour_pressure,
     psychrometric_constant,
     saturation_vapour_pressure,
     slope_saturation_vapour_pressure,
@@ -42,27 +49,27 @@ from agristress.irrigation.water_balance import (
     swi_from_surface_sm,
     taw_from_soil,
 )
-from agristress.irrigation.advisory import (
-    IrrigationAdvisory,
-    IrrigationStatus,
-    FieldAdvisory,
-    advisory_map,
-    aggregate_to_command,
-)
-
 
 # =============================================================================
 # ET0 — FAO-56 Penman-Monteith
 # =============================================================================
 
+
 class TestET0PenmanMonteith:
     """FAO-56 Example 18 (Brussels, 6 July): ET0 = 3.88 mm/day."""
 
     # canonical FAO-56 Example 18 inputs
-    INPUTS = dict(
-        tmin=12.3, tmax=21.5, rh_min=63, rh_max=84,
-        u2=2.078, rs=22.07, elevation=100, lat=50.80, doy=187,
-    )
+    INPUTS: ClassVar[dict[str, float]] = {
+        "tmin": 12.3,
+        "tmax": 21.5,
+        "rh_min": 63,
+        "rh_max": 84,
+        "u2": 2.078,
+        "rs": 22.07,
+        "elevation": 100,
+        "lat": 50.80,
+        "doy": 187,
+    }
 
     def test_et0_matches_fao56_example18(self):
         et0 = et0_penman_monteith(**self.INPUTS)
@@ -71,15 +78,15 @@ class TestET0PenmanMonteith:
 
     def test_components_match_fao56_example18(self):
         c = et0_penman_monteith(**self.INPUTS, return_components=True)
-        assert c.delta == pytest.approx(0.122, abs=0.005)     # slope
-        assert c.gamma == pytest.approx(0.0666, abs=0.001)    # psychrometric
-        assert c.ea == pytest.approx(1.409, abs=0.02)         # actual vp
-        assert c.es == pytest.approx(1.997, abs=0.02)         # sat vp
-        assert c.ra == pytest.approx(41.09, abs=0.3)          # extraterrestrial
-        assert c.rso == pytest.approx(30.90, abs=0.3)         # clear-sky
-        assert c.rns == pytest.approx(17.0, abs=0.2)          # net shortwave
-        assert c.rnl == pytest.approx(3.71, abs=0.2)          # net longwave
-        assert c.rn == pytest.approx(13.28, abs=0.3)          # net radiation
+        assert c.delta == pytest.approx(0.122, abs=0.005)  # slope
+        assert c.gamma == pytest.approx(0.0666, abs=0.001)  # psychrometric
+        assert c.ea == pytest.approx(1.409, abs=0.02)  # actual vp
+        assert c.es == pytest.approx(1.997, abs=0.02)  # sat vp
+        assert c.ra == pytest.approx(41.09, abs=0.3)  # extraterrestrial
+        assert c.rso == pytest.approx(30.90, abs=0.3)  # clear-sky
+        assert c.rns == pytest.approx(17.0, abs=0.2)  # net shortwave
+        assert c.rnl == pytest.approx(3.71, abs=0.2)  # net longwave
+        assert c.rn == pytest.approx(13.28, abs=0.3)  # net radiation
 
     def test_saturation_vapour_pressure_table(self):
         # FAO-56 Eq. 11 reference points: e0(T) = 0.6108*exp(17.27*T/(T+237.3))
@@ -118,20 +125,28 @@ class TestET0PenmanMonteith:
 
     def test_requires_solar_radiation(self):
         with pytest.raises(ValueError):
-            et0_penman_monteith(tmin=12, tmax=22, rh_min=60, rh_max=80, u2=2,
-                                elevation=100, lat=50, doy=180)
+            et0_penman_monteith(
+                tmin=12, tmax=22, rh_min=60, rh_max=80, u2=2, elevation=100, lat=50, doy=180
+            )
 
     def test_et0_non_negative(self):
         # cold, humid, low radiation -> small but non-negative ET0
-        et0 = et0_penman_monteith(tmin=-5, tmax=0, rh_min=90, rh_max=100,
-                                  u2=1, rs=1.0, elevation=0, lat=60, doy=350)
+        et0 = et0_penman_monteith(
+            tmin=-5, tmax=0, rh_min=90, rh_max=100, u2=1, rs=1.0, elevation=0, lat=60, doy=350
+        )
         assert et0 >= 0.0
 
     def test_vectorised_inputs(self):
         et0 = et0_penman_monteith(
-            tmin=np.array([12.3, 12.3]), tmax=np.array([21.5, 21.5]),
-            rh_min=np.array([63, 63]), rh_max=np.array([84, 84]),
-            u2=2.078, rs=np.array([22.07, 22.07]), elevation=100, lat=50.80, doy=187,
+            tmin=np.array([12.3, 12.3]),
+            tmax=np.array([21.5, 21.5]),
+            rh_min=np.array([63, 63]),
+            rh_max=np.array([84, 84]),
+            u2=2.078,
+            rs=np.array([22.07, 22.07]),
+            elevation=100,
+            lat=50.80,
+            doy=187,
         )
         assert np.shape(et0) == (2,)
         assert np.allclose(et0, 3.88, atol=0.2)
@@ -144,8 +159,8 @@ class TestExtraterrestrialRadiation:
         assert ra == pytest.approx(41.09, abs=0.3)
 
     def test_ra_positive_and_seasonal(self):
-        ra_summer = extraterrestrial_radiation(lat=30.0, doy=172)   # ~summer solstice
-        ra_winter = extraterrestrial_radiation(lat=30.0, doy=355)   # ~winter solstice
+        ra_summer = extraterrestrial_radiation(lat=30.0, doy=172)  # ~summer solstice
+        ra_winter = extraterrestrial_radiation(lat=30.0, doy=355)  # ~winter solstice
         assert ra_summer > ra_winter > 0
 
 
@@ -164,6 +179,7 @@ class TestHargreaves:
 # =============================================================================
 # Kc curves
 # =============================================================================
+
 
 class TestKc:
     def test_all_required_crops_present(self):
@@ -198,19 +214,19 @@ class TestKc:
 
     def test_kc_curve_piecewise(self):
         # wheat lengths [30, 40, 40, 30]; boundaries (30, 70, 110, 140)
-        assert kc_curve("wheat", 0) == pytest.approx(0.30)         # ini
-        assert kc_curve("wheat", 30) == pytest.approx(0.30)        # end of ini
+        assert kc_curve("wheat", 0) == pytest.approx(0.30)  # ini
+        assert kc_curve("wheat", 30) == pytest.approx(0.30)  # end of ini
         # mid-development (50 d -> 20/40 through dev): 0.30 + 0.5*(1.15-0.30)
         assert kc_curve("wheat", 50) == pytest.approx(0.30 + 0.5 * 0.85)
-        assert kc_curve("wheat", 90) == pytest.approx(1.15)        # mid season
-        assert kc_curve("wheat", 140) == pytest.approx(0.30)       # harvest
+        assert kc_curve("wheat", 90) == pytest.approx(1.15)  # mid season
+        assert kc_curve("wheat", 140) == pytest.approx(0.30)  # harvest
         # beyond season clamps to Kc_end
         assert kc_curve("wheat", 200) == pytest.approx(0.30)
 
     def test_kc_curve_monotonic_in_development(self):
         das = np.arange(30, 71)
         kc = kc_curve("wheat", das)
-        assert np.all(np.diff(kc) >= -1e-9)        # non-decreasing through dev
+        assert np.all(np.diff(kc) >= -1e-9)  # non-decreasing through dev
         assert kc[0] == pytest.approx(0.30)
         assert kc[-1] == pytest.approx(1.15)
 
@@ -253,6 +269,7 @@ class TestKc:
 # =============================================================================
 # Water balance — TAW / RAW / Ks
 # =============================================================================
+
 
 class TestSoilWaterCapacity:
     def test_taw_formula(self):
@@ -318,10 +335,10 @@ class TestRootZoneWaterBalance:
 
     def test_depletion_increases_with_et(self):
         wb = RootZoneWaterBalance(soil=self.make_soil(), dr0=0.0)
-        st = wb.step(et0=6.0, kc=1.15)        # ETc = 6.9 mm
+        st = wb.step(et0=6.0, kc=1.15)  # ETc = 6.9 mm
         assert st.dr == pytest.approx(6.9, abs=1e-6)
         assert st.etc == pytest.approx(6.9)
-        assert st.etc_adj == pytest.approx(6.9)   # no stress at FC
+        assert st.etc_adj == pytest.approx(6.9)  # no stress at FC
 
     def test_rain_reduces_depletion(self):
         wb = RootZoneWaterBalance(soil=self.make_soil(), dr0=50.0)
@@ -359,7 +376,7 @@ class TestRootZoneWaterBalance:
 
     def test_ks_reduces_et_when_stressed(self):
         soil = self.make_soil()
-        wb = RootZoneWaterBalance(soil=soil, dr0=90.0)   # Dr>RAW -> Ks=0.5
+        wb = RootZoneWaterBalance(soil=soil, dr0=90.0)  # Dr>RAW -> Ks=0.5
         st = wb.step(et0=6.0, kc=1.0)
         assert st.ks == pytest.approx(0.5, abs=1e-6)
         assert st.etc_adj == pytest.approx(0.5 * 6.0, abs=1e-6)
@@ -387,6 +404,7 @@ class TestSwiFilter:
 # 8-day deficit — FAO-56 worked example
 # =============================================================================
 
+
 class TestEightDayDeficit:
     """Worked example: wheat mid-season, sandy-loam, TAW=120, p=0.5 -> RAW=60,
     ET0=6, Kc=1.15, Ea=0.6.  Net irrigation depth at the RAW threshold = 60 mm,
@@ -407,7 +425,10 @@ class TestEightDayDeficit:
     def test_eight_day_accumulation(self):
         soil = self.make_soil()
         res = eight_day_deficit(
-            soil, et0=[6.0] * 8, kc=1.15, application_efficiency=0.6,
+            soil,
+            et0=[6.0] * 8,
+            kc=1.15,
+            application_efficiency=0.6,
         )
         # 8 days * Kc*ET0 (6.9) = 55.2 mm depletion (no stress, Dr<RAW throughout)
         assert res.dr == pytest.approx(55.2, abs=1e-6)
@@ -416,8 +437,7 @@ class TestEightDayDeficit:
 
     def test_dgross_is_dnet_over_ea(self):
         soil = self.make_soil()
-        res = eight_day_deficit(soil, et0=[6.0] * 8, kc=1.15,
-                                application_efficiency=0.6)
+        res = eight_day_deficit(soil, et0=[6.0] * 8, kc=1.15, application_efficiency=0.6)
         assert res.dgross == pytest.approx(res.dnet / 0.6)
 
     def test_short_series_padded(self):
@@ -434,6 +454,7 @@ class TestEightDayDeficit:
 # =============================================================================
 # Advisory
 # =============================================================================
+
 
 class TestIrrigationAdvisory:
     def test_no_irrigation_at_field_capacity(self):
@@ -495,8 +516,7 @@ class TestIrrigationAdvisory:
         assert a1.status == IrrigationStatus.IRRIGATE_NOW
         assert "re-flood" in a1.recommendation.lower() or "reflood" in a1.recommendation.lower()
         # deep dry-down -> critical
-        a2 = adv.evaluate(dr=0.95 * soil_taw, taw=soil_taw, p=0.2,
-                          growth_stage="mid", ponded=True)
+        a2 = adv.evaluate(dr=0.95 * soil_taw, taw=soil_taw, p=0.2, growth_stage="mid", ponded=True)
         assert a2.status == IrrigationStatus.CRITICAL
 
     def test_recommendation_is_string(self):
@@ -544,8 +564,9 @@ class TestCommandAggregation:
         adv = IrrigationAdvisory(application_efficiency=0.6)
         # Dr=RAW -> IRRIGATE_NOW, dgross = (Dr/Ea) = 60/0.6 = 100 mm
         a = adv.evaluate(dr=60.0, taw=120.0, p=0.5, growth_stage="dev", etc=6.9)
-        return FieldAdvisory(field_id=fid, advisory=a, area_ha=area,
-                             is_tail_end=tail, distance_from_head_m=dist)
+        return FieldAdvisory(
+            field_id=fid, advisory=a, area_ha=area, is_tail_end=tail, distance_from_head_m=dist
+        )
 
     def test_volume_and_turn_time(self):
         # two fields: dgross=100 mm over 10 ha and 5 ha
@@ -566,9 +587,10 @@ class TestCommandAggregation:
     def test_tail_end_priority_ordering(self):
         f_head = self._due_field("HEAD", 10.0, dist=50.0)
         f_tail = self._due_field("TAIL", 10.0, dist=950.0, tail=True)
-        plan = aggregate_to_command([f_head, f_tail], outlet_discharge_q=0.05,
-                                    tail_end_priority=True)
-        assert plan.order[0] == "TAIL"   # tail-end served first
+        plan = aggregate_to_command(
+            [f_head, f_tail], outlet_discharge_q=0.05, tail_end_priority=True
+        )
+        assert plan.order[0] == "TAIL"  # tail-end served first
 
     def test_only_due_excludes_non_due(self):
         adv = IrrigationAdvisory()
@@ -577,8 +599,9 @@ class TestCommandAggregation:
             adv.evaluate(dr=0.0, taw=120.0, p=0.5, growth_stage="dev", etc=6.9),
             area_ha=10.0,
         )
-        plan = aggregate_to_command([self._due_field("DUE", 10.0), wet],
-                                    outlet_discharge_q=0.05, only_due=True)
+        plan = aggregate_to_command(
+            [self._due_field("DUE", 10.0), wet], outlet_discharge_q=0.05, only_due=True
+        )
         assert plan.per_field_volume_m3["WET"] == 0.0
         assert plan.n_need_irrigation == 1
 
@@ -591,12 +614,20 @@ class TestCommandAggregation:
 # End-to-end pipeline smoke test
 # =============================================================================
 
+
 def test_end_to_end_pipeline():
     """ET0 -> Kc -> water balance -> 8-day deficit -> advisory."""
     # 1. ET0 (FAO-56 Example 18)
     et0 = et0_penman_monteith(
-        tmin=12.3, tmax=21.5, rh_min=63, rh_max=84,
-        u2=2.078, rs=22.07, elevation=100, lat=50.80, doy=187,
+        tmin=12.3,
+        tmax=21.5,
+        rh_min=63,
+        rh_max=84,
+        u2=2.078,
+        rs=22.07,
+        elevation=100,
+        lat=50.80,
+        doy=187,
     )
     assert et0 == pytest.approx(3.88, abs=0.2)
 
@@ -612,7 +643,6 @@ def test_end_to_end_pipeline():
 
     # 4. Advisory on the resulting depletion
     adv = IrrigationAdvisory(application_efficiency=0.6)
-    a = adv.evaluate(dr=res.dr, taw=soil.taw(), p=soil.p,
-                     growth_stage="mid", etc=kc * et0)
+    a = adv.evaluate(dr=res.dr, taw=soil.taw(), p=soil.p, growth_stage="mid", etc=kc * et0)
     assert a.status in set(IrrigationStatus)
     assert a.dgross == pytest.approx(a.dnet / 0.6)

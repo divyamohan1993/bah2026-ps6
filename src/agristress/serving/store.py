@@ -29,9 +29,9 @@ __all__ = [
     "CROP_LABELS",
     "STRESS_LABELS",
     "FeatureStore",
-    "seed_demo_store",
-    "demo_h3_cells",
     "demo_dates",
+    "demo_h3_cells",
+    "seed_demo_store",
 ]
 
 CROP_LABELS = ["fallow", "rice", "wheat", "maize", "cotton", "sugarcane"]
@@ -90,7 +90,9 @@ class FeatureStore:
             out.update(per_date.keys())
         return sorted(out)
 
-    def timeseries(self, h3: str, var: str, start: str | None, end: str | None) -> list[dict[str, Any]]:
+    def timeseries(
+        self, h3: str, var: str, start: str | None, end: str | None
+    ) -> list[dict[str, Any]]:
         """Return ``[{date, value}]`` for a variable across the date range.
 
         ``var`` may be a stress metric (``vci``/``smi``/``stress_index``/``ndvi``/

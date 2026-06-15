@@ -170,7 +170,9 @@ def search(
     return list(result.items())
 
 
-def _synthetic_items(collection: str, box: BBox, dt_str: str, *, limit: int) -> list[dict[str, Any]]:
+def _synthetic_items(
+    collection: str, box: BBox, dt_str: str, *, limit: int
+) -> list[dict[str, Any]]:
     """Build a handful of placeholder STAC item dicts spanning the date range."""
     start_s, _, end_s = dt_str.partition("/")
     n = max(1, min(limit, 6))
@@ -251,8 +253,10 @@ def _coerce_sensor(sensor: SensorSpec | str | None, items: list[Any]) -> SensorS
         return get_sensor(sensor)
     # Try to map the item's collection id back to a registered sensor.
     if items:
-        coll = items[0].get("collection") if isinstance(items[0], dict) else getattr(
-            items[0], "collection_id", None
+        coll = (
+            items[0].get("collection")
+            if isinstance(items[0], dict)
+            else getattr(items[0], "collection_id", None)
         )
         if coll:
             from agristress.catalog.sensors import SENSOR_REGISTRY

@@ -63,9 +63,9 @@ CLOUD_SCORE_PLUS_THRESHOLD = 0.60
 # Masking strategies
 # ---------------------------------------------------------------------------
 def mask_s2_scl(
-    scl: "NDArray",
+    scl: NDArray,
     invalid_classes: tuple[int, ...] = SCL_INVALID_CLASSES,
-) -> "NDArray":
+) -> NDArray:
     """Boolean *valid* mask from a Sentinel-2 SCL band.
 
     Parameters
@@ -88,9 +88,9 @@ def mask_s2_scl(
 
 
 def cloud_score_plus(
-    cs: "NDArray",
+    cs: NDArray,
     threshold: float = CLOUD_SCORE_PLUS_THRESHOLD,
-) -> "NDArray":
+) -> NDArray:
     """Boolean *valid* mask from a Google CloudScore+ quality band.
 
     CloudScore+ (Pasquarella et al. 2023) emits a continuous clear-probability in
@@ -115,11 +115,11 @@ def cloud_score_plus(
 
 def fmask(
     *,
-    qa: "NDArray | None" = None,
+    qa: NDArray | None = None,
     cloud_bit: int = 3,
     shadow_bit: int = 4,
     backend: str | None = None,
-) -> "NDArray":
+) -> NDArray:
     """Fmask / CFMask cloud-shadow mask wrapper (interface + bit-field fallback).
 
     In production this dispatches to the Fmask 4.x executable or the Landsat
@@ -165,14 +165,14 @@ def fmask(
 # Apply a mask to a band stack (pure numpy, DEMO-ready)
 # ---------------------------------------------------------------------------
 def apply_cloud_mask(
-    stack: "NDArray",
-    qa: "NDArray",
+    stack: NDArray,
+    qa: NDArray,
     *,
     fill: float = np.nan,
     qa_kind: str = "scl",
     threshold: float = CLOUD_SCORE_PLUS_THRESHOLD,
     invalid_classes: tuple[int, ...] = SCL_INVALID_CLASSES,
-) -> "NDArray":
+) -> NDArray:
     """Mask cloudy / shadowed pixels in a reflectance stack with a fill value.
 
     Pure-numpy and broadcast-aware so it works in DEMO mode on synthetic arrays.
@@ -215,7 +215,11 @@ def apply_cloud_mask(
         raise ValueError(f"unknown qa_kind {qa_kind!r}; expected scl|cs|bool")
 
     # Promote dtype if we are going to write NaN into an integer stack.
-    out = stack.astype(float) if (np.isnan(fill) and not np.issubdtype(stack.dtype, np.floating)) else stack.copy()
+    out = (
+        stack.astype(float)
+        if (np.isnan(fill) and not np.issubdtype(stack.dtype, np.floating))
+        else stack.copy()
+    )
 
     if out.ndim == valid.ndim + 1:
         # leading band axis -> broadcast the mask across bands
@@ -229,12 +233,12 @@ def apply_cloud_mask(
 # Surface reflectance scaling
 # ---------------------------------------------------------------------------
 def scale_surface_reflectance(
-    dn: "NDArray",
+    dn: NDArray,
     *,
     scale: float = 1e-4,
     offset: float = 0.0,
     clip: bool = True,
-) -> "NDArray":
+) -> NDArray:
     """Convert integer DN to physical surface reflectance ``[0, 1]``.
 
     Defaults match Sentinel-2 L2A / HLS (``scale=1e-4``). Landsat Collection-2
@@ -300,17 +304,16 @@ def _canonical_band(sensor: str) -> str:
     if key in _BAND_ALIASES:
         return _BAND_ALIASES[key]
     raise KeyError(
-        f"no HLS bandpass coefficient for band {sensor!r}; "
-        f"known bands: {sorted(HLS_S2_TO_OLI)}"
+        f"no HLS bandpass coefficient for band {sensor!r}; known bands: {sorted(HLS_S2_TO_OLI)}"
     )
 
 
 def harmonize_bandpass(
-    reflectance: "NDArray",
+    reflectance: NDArray,
     sensor: str,
     *,
     clip: bool = True,
-) -> "NDArray":
+) -> NDArray:
     """Apply the HLS Sentinel-2 → Landsat-8 OLI bandpass adjustment.
 
     Implements the per-band linear transform of Claverie et al. (2018,

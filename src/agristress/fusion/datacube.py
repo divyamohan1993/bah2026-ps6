@@ -22,6 +22,7 @@ gaps — so the whole downstream stack is testable completely offline.
 
 from __future__ import annotations
 
+import contextlib
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -35,7 +36,7 @@ else:
     _XR_ERR = None
 
 if TYPE_CHECKING:  # pragma: no cover
-    import xarray as xr  # noqa: F811
+    import xarray as xr
 
 # Canonical variable groups.
 SR_BANDS: tuple[str, ...] = ("blue", "green", "red", "nir", "swir1", "swir2")
@@ -57,8 +58,7 @@ PHENOPHASE: dict[str, int] = {
 def _require_xarray() -> None:
     if xr is None:  # pragma: no cover - exercised only without xarray
         raise ImportError(
-            "agristress.fusion.datacube requires xarray; install it via "
-            "`pip install xarray`."
+            "agristress.fusion.datacube requires xarray; install it via `pip install xarray`."
         ) from _XR_ERR
 
 
@@ -128,10 +128,14 @@ def _demo_cube(
     sm = np.empty((nt, height, width), dtype="float32")
     for i in range(nt):
         monsoon = 0.12 * np.exp(-0.5 * ((doy[i] - 210) / 35.0) ** 2)
-        sm[i] = np.clip(0.15 + monsoon + 0.05 * (1 - ndvi[i]) + rng.normal(0, 0.01, (height, width)), 0.02, 0.55)
+        sm[i] = np.clip(
+            0.15 + monsoon + 0.05 * (1 - ndvi[i]) + rng.normal(0, 0.01, (height, width)), 0.02, 0.55
+        )
 
     # LST/ET composite proxy (deg C-ish), warmer over bare / stressed pixels.
-    lst_et = np.clip(28.0 + 8.0 * (1 - ndvi) - 20.0 * sm + rng.normal(0, 0.5, ndvi.shape), 15.0, 50.0).astype("float32")
+    lst_et = np.clip(
+        28.0 + 8.0 * (1 - ndvi) - 20.0 * sm + rng.normal(0, 0.5, ndvi.shape), 15.0, 50.0
+    ).astype("float32")
 
     # Phenophase from NDVI level + rising/falling limb.
     pheno = np.zeros((nt, height, width), dtype="int16")
@@ -146,10 +150,20 @@ def _demo_cube(
     sigma = (0.01 + 0.04 * (qa == 0) + 0.02 * (1 - ndvi)).astype("float32")
 
     data = {
-        "blue": blue, "green": green, "red": red, "nir": nir, "swir1": swir1, "swir2": swir2,
-        "ndvi": ndvi_obs, "evi": evi, "ndwi": ndwi,
-        "soil_moisture": sm, "lst_et": lst_et, "phenophase": pheno,
-        "qa": qa, "sigma": sigma,
+        "blue": blue,
+        "green": green,
+        "red": red,
+        "nir": nir,
+        "swir1": swir1,
+        "swir2": swir2,
+        "ndvi": ndvi_obs,
+        "evi": evi,
+        "ndwi": ndwi,
+        "soil_moisture": sm,
+        "lst_et": lst_et,
+        "phenophase": pheno,
+        "qa": qa,
+        "sigma": sigma,
     }
     coords = {"time": np.asarray(times, dtype="datetime64[ns]"), "y": ys, "x": xs}
     ds = xr.Dataset(
@@ -222,16 +236,20 @@ def build_datacube(
 
     if times is None:
         if n_times is None:
-            n_times = max(int(round(184 / cadence_days)), 4)  # ~kharif season
+            n_times = max(round(184 / cadence_days), 4)  # ~kharif season
         start = np.datetime64("2024-06-01")
         times = start + np.arange(n_times) * np.timedelta64(int(cadence_days), "D")
     times = np.asarray(times, dtype="datetime64[ns]")
 
     if use_demo:
         return _demo_cube(
-            aoi, times,
-            target_res_m=target_res_m, height=height, width=width,
-            seed=seed, cloud_fraction=cloud_fraction,
+            aoi,
+            times,
+            target_res_m=target_res_m,
+            height=height,
+            width=width,
+            seed=seed,
+            cloud_fraction=cloud_fraction,
         )
 
     # ---- real-layers assembly ----
@@ -310,11 +328,9 @@ def to_zarr(ds, path, *, mode: str = "w", chunks: dict | None = None):
     """
     _require_xarray()
     if chunks:
-        try:
+        # dask not available — write eagerly without dask-backed chunking.
+        with contextlib.suppress(ImportError):
             ds = ds.chunk(chunks)
-        except ImportError:
-            # dask not available — write eagerly without dask-backed chunking.
-            pass
     return ds.to_zarr(path, mode=mode)
 
 

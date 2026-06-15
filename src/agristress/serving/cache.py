@@ -61,7 +61,7 @@ class _LRU:
 
     def __init__(self, maxsize: int = 4096) -> None:
         self.maxsize = max(1, int(maxsize))
-        self._data: "OrderedDict[str, tuple[Any, float | None]]" = OrderedDict()
+        self._data: OrderedDict[str, tuple[Any, float | None]] = OrderedDict()
         self._lock = threading.Lock()
         self.hits = 0
         self.misses = 0

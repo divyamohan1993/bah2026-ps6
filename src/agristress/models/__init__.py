@@ -10,7 +10,7 @@ from __future__ import annotations
 
 __all__ = [
     "crop_classifier",
-    "stress",
     "evaluate",
+    "stress",
     "train",
 ]

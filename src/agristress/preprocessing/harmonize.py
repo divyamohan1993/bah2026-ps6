@@ -21,7 +21,7 @@ if TYPE_CHECKING:  # pragma: no cover
 # ---------------------------------------------------------------------------
 # Resampling
 # ---------------------------------------------------------------------------
-def resample_nearest(arr: "NDArray", out_shape: tuple[int, int]) -> "NDArray":
+def resample_nearest(arr: NDArray, out_shape: tuple[int, int]) -> NDArray:
     """Nearest-neighbour resample a 2-D (or ``(band, H, W)``) array to ``out_shape``.
 
     Pure numpy (index remap) — no SciPy / GDAL. Handles both up- and down-sampling.
@@ -54,7 +54,7 @@ def resample_nearest(arr: "NDArray", out_shape: tuple[int, int]) -> "NDArray":
     return arr[np.ix_(row_idx, col_idx)]
 
 
-def _resample_bilinear(arr: "NDArray", out_shape: tuple[int, int]) -> "NDArray":
+def _resample_bilinear(arr: NDArray, out_shape: tuple[int, int]) -> NDArray:
     """Bilinear resample a 2-D array to ``out_shape`` (numpy only)."""
     arr = np.asarray(arr, dtype=float)
     in_h, in_w = arr.shape
@@ -77,7 +77,7 @@ def _resample_bilinear(arr: "NDArray", out_shape: tuple[int, int]) -> "NDArray":
 
 
 def to_common_grid(
-    data: "NDArray",
+    data: NDArray,
     out_shape: tuple[int, int] | None = None,
     *,
     method: str = "nearest",
@@ -133,13 +133,13 @@ def to_common_grid(
 # Linear cross-calibration
 # ---------------------------------------------------------------------------
 def cross_calibrate(
-    src: "NDArray",
+    src: NDArray,
     ref=None,
     coeffs: tuple[float, float] | dict[str, tuple[float, float]] | None = None,
     *,
     band: str | None = None,
     fit: bool = False,
-) -> "NDArray":
+) -> NDArray:
     """Inter-calibrate ``src`` onto a reference sensor via a linear transform.
 
     Two modes:

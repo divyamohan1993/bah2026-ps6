@@ -88,7 +88,7 @@ class InMemoryFeatureStore(FeatureStore):
         return self._store.keys()
 
     @classmethod
-    def from_h3_table(cls, table, *, value_col: str = "value") -> "InMemoryFeatureStore":
+    def from_h3_table(cls, table, *, value_col: str = "value") -> InMemoryFeatureStore:
         """Build a store from a tidy ``(h3_cell, date, variable, value)`` DataFrame.
 
         Rows sharing ``(h3_cell, date)`` are pivoted into a single feature dict
@@ -165,7 +165,7 @@ class ParquetFeatureStore(FeatureStore):
     def __len__(self) -> int:
         return len(self._buffer)
 
-    def __enter__(self) -> "ParquetFeatureStore":
+    def __enter__(self) -> ParquetFeatureStore:
         return self
 
     def __exit__(self, *exc) -> None:

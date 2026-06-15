@@ -29,12 +29,12 @@ _EPS = 1e-9
 # Whittaker smoother (Eilers 2003)
 # ---------------------------------------------------------------------------
 def whittaker_smooth(
-    y: "NDArray",
+    y: NDArray,
     *,
     lambda_: float = 10.0,
     d: int = 2,
-    weights: "NDArray | None" = None,
-) -> "NDArray":
+    weights: NDArray | None = None,
+) -> NDArray:
     r"""Whittaker–Henderson smoother with a discrete roughness penalty.
 
     Minimises ``||W^{1/2}(y - z)||^2 + lambda * ||D_d z||^2`` where ``D_d`` is the
@@ -97,11 +97,11 @@ def whittaker_smooth(
 # Savitzky-Golay smoother (gap-aware)
 # ---------------------------------------------------------------------------
 def savitzky_golay(
-    y: "NDArray",
+    y: NDArray,
     *,
     window: int = 7,
     polyorder: int = 2,
-) -> "NDArray":
+) -> NDArray:
     """Savitzky-Golay polynomial smoother, NaN-aware.
 
     Gaps are linearly interpolated first (so the convolution is well-defined), then
@@ -155,7 +155,7 @@ def savitzky_golay(
 # ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
-def gap_fill_temporal(series: "NDArray", method: str = "whittaker", **kwargs) -> "NDArray":
+def gap_fill_temporal(series: NDArray, method: str = "whittaker", **kwargs) -> NDArray:
     """Reconstruct a gappy index time series (e.g. cloud-masked NDVI).
 
     Parameters
@@ -190,7 +190,7 @@ def gap_fill_temporal(series: "NDArray", method: str = "whittaker", **kwargs) ->
 # ---------------------------------------------------------------------------
 # SAR -> NDVI translation
 # ---------------------------------------------------------------------------
-def sar_to_ndvi(sar_features, model=None, *, feature_order=None) -> "NDArray":
+def sar_to_ndvi(sar_features, model=None, *, feature_order=None) -> NDArray:
     """Estimate optical NDVI from SAR features (all-weather NDVI proxy).
 
     Production uses a trained Random-Forest / gradient-boosting regressor (or a
@@ -242,9 +242,9 @@ def sar_to_ndvi(sar_features, model=None, *, feature_order=None) -> "NDArray":
         elif "vv" in sar_features and "vh" in sar_features:
             from agristress.preprocessing.sar import compute_sar_features
 
-            rvi = compute_sar_features(
-                sar_features["vv"], sar_features["vh"], input_in_db=True
-            )["rvi"]
+            rvi = compute_sar_features(sar_features["vv"], sar_features["vh"], input_in_db=True)[
+                "rvi"
+            ]
         else:  # pragma: no cover - defensive
             raise KeyError("sar_features dict needs 'rvi' or both 'vv' and 'vh'")
     else:

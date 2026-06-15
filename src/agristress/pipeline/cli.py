@@ -95,9 +95,10 @@ def _stage(name: str, aoi: str, season: str) -> dict[str, Any]:
 
     pipe = Pipeline()
     pipe.context.update({"aoi": aoi, "season": season})
-    mapping = {s[0]: s for s in __import__(
-        "agristress.pipeline.orchestrator", fromlist=["_STAGES"]
-    )._STAGES}
+    mapping = {
+        s[0]: s
+        for s in __import__("agristress.pipeline.orchestrator", fromlist=["_STAGES"])._STAGES
+    }
     # Map user-facing verbs to internal stage attrs.
     verb_to_attr = {
         "ingest": "ingestion",
@@ -225,7 +226,9 @@ def _argparse_main(argv: list[str] | None = None) -> int:
 
     import argparse
 
-    parser = argparse.ArgumentParser(prog="agristress", description="AgriStress CLI (BAH 2026 PS6).")
+    parser = argparse.ArgumentParser(
+        prog="agristress", description="AgriStress CLI (BAH 2026 PS6)."
+    )
     sub = parser.add_subparsers(dest="command")
 
     def _add_aoi_season(p: argparse.ArgumentParser) -> None:

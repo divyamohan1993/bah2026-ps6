@@ -21,7 +21,7 @@ driver can swap them freely.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -205,7 +205,7 @@ class CropClassifier:
             return compute_sample_weight("balanced", y)
         except Exception:  # pragma: no cover
             classes, counts = np.unique(y, return_counts=True)
-            freq = {c: n for c, n in zip(classes, counts)}
+            freq = dict(zip(classes, counts))
             n_total = len(y)
             n_cls = len(classes)
             return np.array([n_total / (n_cls * freq[v]) for v in y], dtype=np.float64)
@@ -218,7 +218,7 @@ class CropClassifier:
         return arr
 
     # -- API -----------------------------------------------------------------
-    def fit(self, X, y, feature_names: Sequence[str] | None = None) -> "CropClassifier":
+    def fit(self, X, y, feature_names: Sequence[str] | None = None) -> CropClassifier:
         """Fit the classifier on feature matrix ``X`` and labels ``y``."""
         Xa = self._as_2d(X)
         ya = np.asarray(y).ravel()
@@ -334,7 +334,7 @@ class SatelliteEmbeddingClassifier:
             arr = arr.reshape(1, -1)
         return self._l2(arr) if self.normalize else arr
 
-    def fit(self, X, y) -> "SatelliteEmbeddingClassifier":
+    def fit(self, X, y) -> SatelliteEmbeddingClassifier:
         """Fit centroids or the light head on embeddings ``X`` with labels ``y``."""
         Xa = self._prep(X)
         ya = np.asarray(y).ravel()

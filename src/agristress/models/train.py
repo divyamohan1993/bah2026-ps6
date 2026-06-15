@@ -21,9 +21,10 @@ No Earth Engine / credentials required.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -31,11 +32,11 @@ from . import evaluate as _eval
 from .crop_classifier import CropClassifier, SatelliteEmbeddingClassifier
 
 __all__ = [
-    "make_synthetic_crop_dataset",
+    "TrainResult",
     "build_feature_stack",
+    "make_synthetic_crop_dataset",
     "spatial_block_split",
     "train_crop_model",
-    "TrainResult",
 ]
 
 
@@ -61,11 +62,66 @@ class _CropArchetype:
 
 
 _DEFAULT_ARCHETYPES = [
-    _CropArchetype("rice", base=0.18, amp=0.62, sos=0.28, eos=0.78, rise=14, fall=10, vh_mean=0.030, vv_mean=0.090, texture=0.18),
-    _CropArchetype("wheat", base=0.15, amp=0.70, sos=0.18, eos=0.70, rise=12, fall=9, vh_mean=0.018, vv_mean=0.070, texture=0.12),
-    _CropArchetype("maize", base=0.16, amp=0.66, sos=0.22, eos=0.62, rise=16, fall=13, vh_mean=0.024, vv_mean=0.080, texture=0.22),
-    _CropArchetype("cotton", base=0.20, amp=0.50, sos=0.30, eos=0.88, rise=8, fall=6, vh_mean=0.040, vv_mean=0.100, texture=0.30),
-    _CropArchetype("sugarcane", base=0.25, amp=0.55, sos=0.10, eos=0.95, rise=7, fall=5, vh_mean=0.045, vv_mean=0.110, texture=0.35),
+    _CropArchetype(
+        "rice",
+        base=0.18,
+        amp=0.62,
+        sos=0.28,
+        eos=0.78,
+        rise=14,
+        fall=10,
+        vh_mean=0.030,
+        vv_mean=0.090,
+        texture=0.18,
+    ),
+    _CropArchetype(
+        "wheat",
+        base=0.15,
+        amp=0.70,
+        sos=0.18,
+        eos=0.70,
+        rise=12,
+        fall=9,
+        vh_mean=0.018,
+        vv_mean=0.070,
+        texture=0.12,
+    ),
+    _CropArchetype(
+        "maize",
+        base=0.16,
+        amp=0.66,
+        sos=0.22,
+        eos=0.62,
+        rise=16,
+        fall=13,
+        vh_mean=0.024,
+        vv_mean=0.080,
+        texture=0.22,
+    ),
+    _CropArchetype(
+        "cotton",
+        base=0.20,
+        amp=0.50,
+        sos=0.30,
+        eos=0.88,
+        rise=8,
+        fall=6,
+        vh_mean=0.040,
+        vv_mean=0.100,
+        texture=0.30,
+    ),
+    _CropArchetype(
+        "sugarcane",
+        base=0.25,
+        amp=0.55,
+        sos=0.10,
+        eos=0.95,
+        rise=7,
+        fall=5,
+        vh_mean=0.045,
+        vv_mean=0.110,
+        texture=0.35,
+    ),
 ]
 
 
@@ -147,8 +203,16 @@ def make_synthetic_crop_dataset(
             # --- SAR features (modulated by greenness; volume scattering up
             #     with biomass) ---
             green_frac = np.clip((ndvi_ts - arch.base) / max(arch.amp, 1e-3), 0, 1)
-            vh = np.clip(arch.vh_mean * (1 + 0.8 * green_frac) + rng.normal(0, noise * 0.4, n_timesteps), 1e-4, None)
-            vv = np.clip(arch.vv_mean * (1 + 0.4 * green_frac) + rng.normal(0, noise * 0.4, n_timesteps), 1e-4, None)
+            vh = np.clip(
+                arch.vh_mean * (1 + 0.8 * green_frac) + rng.normal(0, noise * 0.4, n_timesteps),
+                1e-4,
+                None,
+            )
+            vv = np.clip(
+                arch.vv_mean * (1 + 0.4 * green_frac) + rng.normal(0, noise * 0.4, n_timesteps),
+                1e-4,
+                None,
+            )
             cr = vh / vv  # cross-ratio
             rvi = 4.0 * vh / (vv + vh)
 
@@ -170,7 +234,19 @@ def make_synthetic_crop_dataset(
             feat["texture_contrast"] = float(texture)
             # Append a curated subset of phenometrics (drop noisy raw harmonics
             # phases that add little and can carry NaNs for short series).
-            for key in ("sos", "pos", "eos", "lgp", "amplitude", "integral", "vi_mean", "vi_std", "vi_max", "harm_amp1", "harm_amp2"):
+            for key in (
+                "sos",
+                "pos",
+                "eos",
+                "lgp",
+                "amplitude",
+                "integral",
+                "vi_mean",
+                "vi_std",
+                "vi_max",
+                "harm_amp1",
+                "harm_amp2",
+            ):
                 feat[f"ph_{key}"] = float(ph.get(key, np.nan))
 
             if feature_names is None:
@@ -280,7 +356,11 @@ def build_feature_stack(
     from ..features.indices import stack_indices
     from ..features.phenology import phenometrics
 
-    arr = np.asarray(datacube_or_table, dtype=np.float64) if not hasattr(datacube_or_table, "values") else None
+    arr = (
+        np.asarray(datacube_or_table, dtype=np.float64)
+        if not hasattr(datacube_or_table, "values")
+        else None
+    )
     if arr is None:  # pandas DataFrame
         df = datacube_or_table
         names = [str(c) for c in df.columns]
@@ -296,7 +376,11 @@ def build_feature_stack(
     n_samples, n_time, n_bands = arr.shape
     if band_names is None or len(band_names) != n_bands:
         raise ValueError("band_names (length n_bands) is required for a 3-D datacube")
-    t = np.asarray(time, dtype=np.float64) if time is not None else np.arange(n_time, dtype=np.float64)
+    t = (
+        np.asarray(time, dtype=np.float64)
+        if time is not None
+        else np.arange(n_time, dtype=np.float64)
+    )
 
     # Per-time-step index series.
     index_series: dict[str, np.ndarray] = {}
@@ -315,7 +399,9 @@ def build_feature_stack(
             feature_cols.append(series[:, ti])
             feature_names.append(f"{iname}_t{ti:02d}")
         # Simple temporal stats per index (cheap, informative).
-        feature_cols.extend([np.nanmean(series, axis=1), np.nanmax(series, axis=1), np.nanstd(series, axis=1)])
+        feature_cols.extend(
+            [np.nanmean(series, axis=1), np.nanmax(series, axis=1), np.nanstd(series, axis=1)]
+        )
         feature_names.extend([f"{iname}_mean", f"{iname}_max", f"{iname}_std"])
 
     if include_phenology and vi_for_phenology in index_series:
@@ -324,7 +410,19 @@ def build_feature_stack(
         for s in range(n_samples):
             ph = phenometrics(t, vi[s], n_harmonics=2)
             ph_rows.append(ph)
-        ph_keys = ["sos", "pos", "eos", "lgp", "amplitude", "integral", "vi_mean", "vi_std", "vi_max", "harm_amp1", "harm_amp2"]
+        ph_keys = [
+            "sos",
+            "pos",
+            "eos",
+            "lgp",
+            "amplitude",
+            "integral",
+            "vi_mean",
+            "vi_std",
+            "vi_max",
+            "harm_amp1",
+            "harm_amp2",
+        ]
         for key in ph_keys:
             feature_cols.append(np.array([r.get(key, np.nan) for r in ph_rows]))
             feature_names.append(f"ph_{key}")
@@ -386,21 +484,19 @@ def spatial_block_split(
 
     if axis == "x":
         block_id = _bin(coords[:, 0], n_blocks)
-        n_total_blocks = n_blocks
     elif axis == "y":
         block_id = _bin(coords[:, 1], n_blocks)
-        n_total_blocks = n_blocks
     elif axis == "grid":
         bx = _bin(coords[:, 0], n_blocks)
         by = _bin(coords[:, 1], n_blocks)
         block_id = bx * n_blocks + by
-        n_total_blocks = n_blocks * n_blocks
+        n_blocks * n_blocks
     else:
         raise ValueError("axis must be 'x', 'y' or 'grid'")
 
     unique_blocks = np.unique(block_id)
     rng.shuffle(unique_blocks)
-    n_test = max(1, int(round(len(unique_blocks) * test_size)))
+    n_test = max(1, round(len(unique_blocks) * test_size))
     test_blocks = set(unique_blocks[:n_test].tolist())
 
     is_test = np.array([b in test_blocks for b in block_id])
@@ -486,7 +582,9 @@ def train_crop_model(
         X = np.asarray(datacube_or_table, dtype=np.float64)
         if X.ndim != 2:
             raise ValueError("embedding model expects a 2-D (n_samples, d) matrix")
-        names = feature_names if feature_names is not None else [f"emb{j}" for j in range(X.shape[1])]
+        names = (
+            feature_names if feature_names is not None else [f"emb{j}" for j in range(X.shape[1])]
+        )
         names = list(names)
     else:
         X, names = build_feature_stack(datacube_or_table)
@@ -507,7 +605,9 @@ def train_crop_model(
     # --- model ---
     if is_embedding:
         method = model_kwargs.pop("method", "cosine")
-        clf: Any = SatelliteEmbeddingClassifier(method=method, random_state=random_state, **model_kwargs)
+        clf: Any = SatelliteEmbeddingClassifier(
+            method=method, random_state=random_state, **model_kwargs
+        )
         clf.fit(X[train_idx], y[train_idx])
         backend = f"embedding:{method}"
     else:
@@ -535,7 +635,9 @@ def train_crop_model(
             import joblib
 
             model_path = str(save_dir / f"{model_name}.joblib")
-            joblib.dump({"model": clf, "feature_names": names, "classes": list(clf.classes_)}, model_path)
+            joblib.dump(
+                {"model": clf, "feature_names": names, "classes": list(clf.classes_)}, model_path
+            )
         except Exception:  # pragma: no cover - joblib should be present
             model_path = None
         report_path = str(save_dir / f"{model_name}_metrics.json")

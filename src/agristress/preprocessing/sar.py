@@ -28,7 +28,7 @@ _EPS = 1e-12
 # ---------------------------------------------------------------------------
 # dB <-> linear
 # ---------------------------------------------------------------------------
-def to_db(linear: "NDArray", *, eps: float = _EPS) -> "NDArray":
+def to_db(linear: NDArray, *, eps: float = _EPS) -> NDArray:
     r"""Convert linear backscatter power to decibels: ``10 * log10(x)``.
 
     Non-positive inputs are floored at ``eps`` to avoid ``-inf`` / NaN.
@@ -37,7 +37,7 @@ def to_db(linear: "NDArray", *, eps: float = _EPS) -> "NDArray":
     return 10.0 * np.log10(np.maximum(x, eps))
 
 
-def to_linear(db: "NDArray") -> "NDArray":
+def to_linear(db: NDArray) -> NDArray:
     r"""Convert decibel backscatter to linear power: ``10 ** (dB / 10)``."""
     return np.power(10.0, np.asarray(db, dtype=float) / 10.0)
 
@@ -45,7 +45,7 @@ def to_linear(db: "NDArray") -> "NDArray":
 # ---------------------------------------------------------------------------
 # Refined Lee speckle filter (Lee 1999, MMSE local-statistics form)
 # ---------------------------------------------------------------------------
-def _boxcar_mean(img: "NDArray", size: int) -> "NDArray":
+def _boxcar_mean(img: NDArray, size: int) -> NDArray:
     """Local mean over a ``size x size`` window with edge replication (numpy only)."""
     r = size // 2
     padded = np.pad(img, r, mode="edge")
@@ -63,7 +63,7 @@ def _boxcar_mean(img: "NDArray", size: int) -> "NDArray":
     return total / float(win * win)
 
 
-def refined_lee(img: "NDArray", size: int = 7, *, looks: float = 1.0) -> "NDArray":
+def refined_lee(img: NDArray, size: int = 7, *, looks: float = 1.0) -> NDArray:
     r"""Refined-Lee adaptive speckle filter for SAR intensity imagery.
 
     Implements the minimum-mean-square-error (MMSE) local-statistics estimator of
@@ -130,12 +130,12 @@ def refined_lee(img: "NDArray", size: int = 7, *, looks: float = 1.0) -> "NDArra
 # Radiometric terrain flattening (interface)
 # ---------------------------------------------------------------------------
 def terrain_flatten(
-    sigma0: "NDArray",
+    sigma0: NDArray,
     *,
-    local_incidence_angle_deg: "NDArray | None" = None,
-    dem: "NDArray | None" = None,
+    local_incidence_angle_deg: NDArray | None = None,
+    dem: NDArray | None = None,
     reference_angle_deg: float = 40.0,
-) -> "NDArray":
+) -> NDArray:
     r"""Radiometric terrain flattening: sigma0 → terrain-flattened gamma0 (interface).
 
     Production deployments perform full Radiometric-Terrain-Correction (gamma-naught
@@ -179,12 +179,12 @@ def terrain_flatten(
 # SAR backscatter features
 # ---------------------------------------------------------------------------
 def compute_sar_features(
-    vv: "NDArray",
-    vh: "NDArray",
+    vv: NDArray,
+    vh: NDArray,
     *,
     input_in_db: bool = False,
     eps: float = _EPS,
-) -> dict[str, "NDArray"]:
+) -> dict[str, NDArray]:
     r"""Derive the standard Sentinel-1 dual-pol backscatter feature set.
 
     Produces:

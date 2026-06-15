@@ -6,6 +6,7 @@ valid JSON with the GeoJSON shapes the dashboard depends on. They are
 intentionally lightweight (no browser / JS execution) so they run in CI without
 a Node toolchain.
 """
+
 from __future__ import annotations
 
 import json

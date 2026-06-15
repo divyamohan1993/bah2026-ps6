@@ -18,31 +18,30 @@ Paper 56. Rome, FAO.  (Equations are cited inline as "Eq. N".)
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 
 __all__ = [
+    "ALBEDO",
     "GSC",
     "STEFAN_BOLTZMANN",
-    "ALBEDO",
-    "saturation_vapour_pressure",
-    "slope_saturation_vapour_pressure",
-    "mean_saturation_vapour_pressure",
+    "ET0Components",
     "actual_vapour_pressure",
     "atmospheric_pressure",
-    "psychrometric_constant",
-    "inverse_relative_distance_earth_sun",
-    "solar_declination",
-    "sunset_hour_angle",
-    "extraterrestrial_radiation",
     "clear_sky_radiation",
-    "net_shortwave_radiation",
+    "et0_hargreaves",
+    "et0_penman_monteith",
+    "extraterrestrial_radiation",
+    "inverse_relative_distance_earth_sun",
+    "mean_saturation_vapour_pressure",
     "net_longwave_radiation",
     "net_radiation",
-    "et0_penman_monteith",
-    "et0_hargreaves",
-    "ET0Components",
+    "net_shortwave_radiation",
+    "psychrometric_constant",
+    "saturation_vapour_pressure",
+    "slope_saturation_vapour_pressure",
+    "solar_declination",
+    "sunset_hour_angle",
 ]
 
 # --- physical constants (FAO-56) -------------------------------------------------
@@ -56,6 +55,7 @@ ALBEDO: float = 0.23
 
 
 # --- vapour pressure -------------------------------------------------------------
+
 
 def saturation_vapour_pressure(t: np.ndarray | float) -> np.ndarray:
     r"""Saturation vapour pressure :math:`e^\circ(T)` at air temperature *t* [kPa].
@@ -95,10 +95,10 @@ def mean_saturation_vapour_pressure(tmin: float, tmax: float) -> np.ndarray:
 def actual_vapour_pressure(
     tmin: float,
     tmax: float,
-    rh_min: Optional[float] = None,
-    rh_max: Optional[float] = None,
-    rh_mean: Optional[float] = None,
-    tdew: Optional[float] = None,
+    rh_min: float | None = None,
+    rh_max: float | None = None,
+    rh_mean: float | None = None,
+    tdew: float | None = None,
 ) -> np.ndarray:
     r"""Actual vapour pressure :math:`e_a` [kPa].
 
@@ -128,12 +128,12 @@ def actual_vapour_pressure(
         return (rh_mean / 100.0) * 0.5 * (e_tmax + e_tmin)
 
     raise ValueError(
-        "actual_vapour_pressure requires one of: tdew, (rh_min & rh_max), "
-        "rh_max, or rh_mean."
+        "actual_vapour_pressure requires one of: tdew, (rh_min & rh_max), rh_max, or rh_mean."
     )
 
 
 # --- pressure / psychrometric ----------------------------------------------------
+
 
 def atmospheric_pressure(elevation: float) -> np.ndarray:
     r"""Atmospheric pressure *P* [kPa] from elevation *z* [m] (FAO-56 Eq. 7)."""
@@ -151,6 +151,7 @@ def psychrometric_constant(pressure: float) -> np.ndarray:
 
 
 # --- radiation -------------------------------------------------------------------
+
 
 def inverse_relative_distance_earth_sun(doy: int) -> np.ndarray:
     r"""Inverse relative Earth-Sun distance :math:`d_r` [-] (FAO-56 Eq. 23)."""
@@ -193,10 +194,7 @@ def extraterrestrial_radiation(lat: float, doy: int) -> np.ndarray:
         (24.0 * 60.0 / np.pi)
         * GSC
         * dr
-        * (
-            ws * np.sin(phi) * np.sin(decl)
-            + np.cos(phi) * np.cos(decl) * np.sin(ws)
-        )
+        * (ws * np.sin(phi) * np.sin(decl) + np.cos(phi) * np.cos(decl) * np.sin(ws))
     )
     return ra
 
@@ -254,6 +252,7 @@ def net_radiation(rns: np.ndarray, rnl: np.ndarray) -> np.ndarray:
 
 # --- ET0 -------------------------------------------------------------------------
 
+
 @dataclass
 class ET0Components:
     """Container holding ET0 and every intermediate (useful for QA / debugging)."""
@@ -275,18 +274,18 @@ class ET0Components:
 def et0_penman_monteith(
     tmin: float,
     tmax: float,
-    rh_min: Optional[float] = None,
-    rh_max: Optional[float] = None,
+    rh_min: float | None = None,
+    rh_max: float | None = None,
     u2: float = 2.0,
-    rs: Optional[float] = None,
+    rs: float | None = None,
     elevation: float = 0.0,
     lat: float = 0.0,
     doy: int = 1,
     *,
-    rh_mean: Optional[float] = None,
-    tdew: Optional[float] = None,
+    rh_mean: float | None = None,
+    tdew: float | None = None,
     g: float = 0.0,
-    tmean: Optional[float] = None,
+    tmean: float | None = None,
     return_components: bool = False,
 ):
     r"""FAO-56 Penman-Monteith reference evapotranspiration ET0 [mm/day].
@@ -334,10 +333,7 @@ def et0_penman_monteith(
 
     tmin = np.asarray(tmin, dtype=float)
     tmax = np.asarray(tmax, dtype=float)
-    if tmean is None:
-        t = (tmin + tmax) / 2.0
-    else:
-        t = np.asarray(tmean, dtype=float)
+    t = (tmin + tmax) / 2.0 if tmean is None else np.asarray(tmean, dtype=float)
 
     # vapour pressure terms
     es = mean_saturation_vapour_pressure(tmin, tmax)

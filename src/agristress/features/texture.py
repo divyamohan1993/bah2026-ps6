@@ -16,16 +16,16 @@ dissimilarity are also available.
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 import numpy as np
 
 __all__ = [
-    "quantize",
-    "graycomatrix_np",
-    "glcm_props",
-    "glcm_features",
     "HAS_SKIMAGE",
+    "glcm_features",
+    "glcm_props",
+    "graycomatrix_np",
+    "quantize",
 ]
 
 try:  # optional accelerator
@@ -131,7 +131,18 @@ def _props_from_glcm(glcm: np.ndarray) -> dict[str, float]:
     p = glcm
     total = p.sum()
     if total <= 0:
-        return {k: float("nan") for k in ("contrast", "homogeneity", "energy", "correlation", "dissimilarity", "ASM", "entropy")}
+        return {
+            k: float("nan")
+            for k in (
+                "contrast",
+                "homogeneity",
+                "energy",
+                "correlation",
+                "dissimilarity",
+                "ASM",
+                "entropy",
+            )
+        }
     p = p / total  # ensure normalised
 
     diff = i - j

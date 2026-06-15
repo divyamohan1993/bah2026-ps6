@@ -7,7 +7,7 @@ local imports where heavy), while the rest is available on submodules.
 
 from __future__ import annotations
 
-__all__ = ["create_app", "app", "Cache", "FeatureStore", "seed_demo_store"]
+__all__ = ["Cache", "FeatureStore", "app", "create_app", "seed_demo_store"]
 
 
 def __getattr__(name: str):  # PEP 562 lazy attribute access

@@ -21,26 +21,27 @@ a raster of fields by passing array soil properties.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Optional, Sequence
 
 import numpy as np
 
 __all__ = [
+    "RootZoneWaterBalance",
     "SoilProperties",
-    "taw_from_soil",
+    "WaterBalanceState",
+    "effective_rainfall_scs_cn",
+    "effective_rainfall_usda_monthly",
+    "eight_day_deficit",
     "raw_from_taw",
     "stress_coefficient",
-    "effective_rainfall_usda_monthly",
-    "effective_rainfall_scs_cn",
     "swi_from_surface_sm",
-    "WaterBalanceState",
-    "RootZoneWaterBalance",
-    "eight_day_deficit",
+    "taw_from_soil",
 ]
 
 
 # --- soil ------------------------------------------------------------------------
+
 
 @dataclass
 class SoilProperties:
@@ -65,13 +66,13 @@ class SoilProperties:
     theta_wp: float
     zr: float
     p: float = 0.5
-    theta_sat: Optional[float] = None
+    theta_sat: float | None = None
 
     def taw(self) -> float:
         """Total available water in the root zone [mm] (FAO-56 Eq. 82)."""
         return 1000.0 * (self.theta_fc - self.theta_wp) * self.zr
 
-    def raw(self, p: Optional[float] = None) -> float:
+    def raw(self, p: float | None = None) -> float:
         """Readily available water [mm] (FAO-56 Eq. 83): ``RAW = p * TAW``."""
         pp = self.p if p is None else p
         return pp * self.taw()
@@ -84,7 +85,9 @@ class SoilProperties:
 
 def taw_from_soil(theta_fc: float, theta_wp: float, zr: float) -> float:
     """``TAW = 1000 * (theta_fc - theta_wp) * Zr`` [mm]."""
-    return 1000.0 * (np.asarray(theta_fc, float) - np.asarray(theta_wp, float)) * np.asarray(zr, float)
+    return (
+        1000.0 * (np.asarray(theta_fc, float) - np.asarray(theta_wp, float)) * np.asarray(zr, float)
+    )
 
 
 def raw_from_taw(taw: float, p: float) -> float:
@@ -120,6 +123,7 @@ def stress_coefficient(dr: float, taw: float, p: float) -> np.ndarray:
 
 
 # --- effective rainfall ----------------------------------------------------------
+
 
 def effective_rainfall_usda_monthly(
     p_month_mm: float | np.ndarray,
@@ -166,6 +170,7 @@ def effective_rainfall_scs_cn(
 
 # --- satellite soil-moisture initialisation -------------------------------------
 
+
 def swi_from_surface_sm(
     ssm: float | np.ndarray,
     time: float | np.ndarray | None = None,
@@ -199,19 +204,20 @@ def swi_from_surface_sm(
 
 # --- daily root-zone water balance ----------------------------------------------
 
+
 @dataclass
 class WaterBalanceState:
     """Single-day output of the root-zone water balance."""
 
     day: int
-    dr: float          # root-zone depletion at end of day [mm]
-    ks: float          # stress coefficient [-]
-    etc: float         # potential crop ET, Kc*ET0 [mm]
-    etc_adj: float     # actual (stress-reduced) crop ET, Ks*Kc*ET0 [mm]
-    peff: float        # effective (infiltrated) rainfall [mm]
+    dr: float  # root-zone depletion at end of day [mm]
+    ks: float  # stress coefficient [-]
+    etc: float  # potential crop ET, Kc*ET0 [mm]
+    etc_adj: float  # actual (stress-reduced) crop ET, Ks*Kc*ET0 [mm]
+    peff: float  # effective (infiltrated) rainfall [mm]
     irrigation: float  # applied net irrigation [mm]
-    deep_perc: float   # deep percolation below root zone [mm]
-    runoff: float      # surface runoff [mm]
+    deep_perc: float  # deep percolation below root zone [mm]
+    runoff: float  # surface runoff [mm]
 
 
 @dataclass
@@ -259,9 +265,7 @@ class RootZoneWaterBalance:
         return float(stress_coefficient(self._dr, self.taw, self.soil.p))
 
     @classmethod
-    def from_surface_sm(
-        cls, soil: SoilProperties, swi_norm: float, **kw
-    ) -> "RootZoneWaterBalance":
+    def from_surface_sm(cls, soil: SoilProperties, swi_norm: float, **kw) -> RootZoneWaterBalance:
         """Build with the initial depletion derived from a normalised SWI ``[0,1]``.
 
         ``Dr0 = TAW * (1 - SWI_norm)`` — saturated root zone (SWI=1) -> Dr0=0.
@@ -278,8 +282,8 @@ class RootZoneWaterBalance:
         rain: float = 0.0,
         irrigation: float = 0.0,
         capillary_rise: float = 0.0,
-        runoff: Optional[float] = None,
-        curve_number: Optional[float] = None,
+        runoff: float | None = None,
+        curve_number: float | None = None,
         ke: float = 0.0,
         day: int = 0,
     ) -> WaterBalanceState:
@@ -332,7 +336,7 @@ class RootZoneWaterBalance:
 
         # deep percolation: any over-filling below field capacity (Dr < 0)
         deep_perc = float(max(-dr_pre, 0.0))
-        dr_new = dr_pre + deep_perc          # -> >= 0 when over-filled
+        dr_new = dr_pre + deep_perc  # -> >= 0 when over-filled
         # cannot deplete beyond wilting (TAW)
         dr_new = float(min(dr_new, taw))
 
@@ -356,7 +360,7 @@ class RootZoneWaterBalance:
         rain: Sequence[float] | np.ndarray | float = 0.0,
         irrigation: Sequence[float] | np.ndarray | float = 0.0,
         capillary_rise: Sequence[float] | np.ndarray | float = 0.0,
-        curve_number: Optional[float] = None,
+        curve_number: float | None = None,
     ) -> list[WaterBalanceState]:
         """Run the balance over an ET0 series; returns a list of daily states."""
         et0 = np.atleast_1d(np.asarray(et0, dtype=float))
@@ -384,14 +388,15 @@ class RootZoneWaterBalance:
 
 # --- 8-day deficit ---------------------------------------------------------------
 
+
 @dataclass
 class EightDayDeficit:
     """Result of an 8-day forward deficit accumulation."""
 
-    dr: float        # depletion at the end of the window [mm]
-    dnet: float      # net irrigation requirement = Dr [mm]
-    dgross: float    # gross requirement = dnet / Ea [mm]
-    ks_end: float    # stress coefficient at window end [-]
+    dr: float  # depletion at the end of the window [mm]
+    dnet: float  # net irrigation requirement = Dr [mm]
+    dgross: float  # gross requirement = dnet / Ea [mm]
+    ks_end: float  # stress coefficient at window end [-]
     states: list[WaterBalanceState]
 
 
@@ -403,7 +408,7 @@ def eight_day_deficit(
     dr0: float = 0.0,
     application_efficiency: float = 0.6,
     irrigation: Sequence[float] | np.ndarray | float = 0.0,
-    curve_number: Optional[float] = None,
+    curve_number: float | None = None,
     days: int = 8,
 ) -> EightDayDeficit:
     """Accumulate the root-zone depletion over an 8-day window.

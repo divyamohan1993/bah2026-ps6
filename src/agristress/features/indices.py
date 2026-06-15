@@ -34,31 +34,29 @@ References
 
 from __future__ import annotations
 
-from typing import Union
-
 import numpy as np
 
-ArrayLike = Union[np.ndarray, float, int]
+ArrayLike = np.ndarray | float | int
 
 __all__ = [
-    "safe_divide",
-    "ndvi",
     "evi",
     "evi2",
-    "ndwi_gao",
-    "ndwi_mcfeeters",
+    "gcvi",
+    "msavi",
     "ndmi",
     "ndre",
-    "gcvi",
-    "psri",
+    "ndvi",
+    "ndwi_gao",
+    "ndwi_mcfeeters",
     "nmdi",
-    "savi",
-    "msavi",
     "normalized_difference",
-    "sar_rvi",
+    "psri",
+    "safe_divide",
     "sar_cross_ratio",
-    "str_index",
+    "sar_rvi",
+    "savi",
     "stack_indices",
+    "str_index",
 ]
 
 # Numerical floor for denominators.  Anything with |denominator| below this is
@@ -136,7 +134,9 @@ def evi(
     return safe_divide(num, den)
 
 
-def evi2(nir: ArrayLike, red: ArrayLike, *, g: float = 2.5, l: float = 1.0, c: float = 2.4) -> np.ndarray:
+def evi2(
+    nir: ArrayLike, red: ArrayLike, *, g: float = 2.5, l: float = 1.0, c: float = 2.4
+) -> np.ndarray:
     """Two-band EVI (Jiang et al. 2008) — EVI without the blue band.
 
     ``G * (NIR - Red) / (NIR + C*Red + L)``.  Useful for sensors lacking a
@@ -283,7 +283,9 @@ def str_index(swir: ArrayLike) -> np.ndarray:
 # --------------------------------------------------------------------------- #
 # Convenience: compute a dict / stack of indices from a band mapping
 # --------------------------------------------------------------------------- #
-def stack_indices(bands: dict[str, ArrayLike], which: list[str] | None = None) -> dict[str, np.ndarray]:
+def stack_indices(
+    bands: dict[str, ArrayLike], which: list[str] | None = None
+) -> dict[str, np.ndarray]:
     """Compute a set of indices from a ``{band_name: array}`` mapping.
 
     Parameters

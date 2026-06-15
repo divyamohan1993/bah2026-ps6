@@ -30,7 +30,7 @@ from .cache import Cache, cache_key
 from .store import FeatureStore, seed_demo_store
 from .tiler import LAYER_PALETTES, h3_to_tile, render_demo_tile, titiler_router
 
-__all__ = ["create_app", "app"]
+__all__ = ["app", "create_app"]
 
 # Layers exposed by the keyed-lookup endpoints.
 _VALID_LAYERS = {"crop", "stress", "advisory"}
@@ -203,9 +203,11 @@ def create_app(
         ),
     )
 
-    origins = cors_origins if cors_origins is not None else os.environ.get(
-        "AGRISTRESS_CORS_ORIGINS", "*"
-    ).split(",")
+    origins = (
+        cors_origins
+        if cors_origins is not None
+        else os.environ.get("AGRISTRESS_CORS_ORIGINS", "*").split(",")
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[o.strip() for o in origins] or ["*"],
@@ -240,7 +242,13 @@ def create_app(
     ) -> CropResponse:
         d = _resolve_date(store, h3, date)
         rec = _lookup(store, cache, "crop", h3, d)
-        return CropResponse(h3=h3, date=d, **{k: rec[k] for k in rec if k in CropResponse.model_fields and k not in ("h3", "date")})
+        return CropResponse(
+            h3=h3,
+            date=d,
+            **{
+                k: rec[k] for k in rec if k in CropResponse.model_fields and k not in ("h3", "date")
+            },
+        )
 
     @app.get("/stress", response_model=StressResponse, tags=["layers"])
     def stress(
@@ -249,7 +257,15 @@ def create_app(
     ) -> StressResponse:
         d = _resolve_date(store, h3, date)
         rec = _lookup(store, cache, "stress", h3, d)
-        return StressResponse(h3=h3, date=d, **{k: rec[k] for k in rec if k in StressResponse.model_fields and k not in ("h3", "date")})
+        return StressResponse(
+            h3=h3,
+            date=d,
+            **{
+                k: rec[k]
+                for k in rec
+                if k in StressResponse.model_fields and k not in ("h3", "date")
+            },
+        )
 
     @app.get("/advisory", response_model=AdvisoryResponse, tags=["layers"])
     def advisory(
@@ -258,12 +274,22 @@ def create_app(
     ) -> AdvisoryResponse:
         d = _resolve_date(store, h3, date)
         rec = _lookup(store, cache, "advisory", h3, d)
-        return AdvisoryResponse(h3=h3, date=d, **{k: rec[k] for k in rec if k in AdvisoryResponse.model_fields and k not in ("h3", "date")})
+        return AdvisoryResponse(
+            h3=h3,
+            date=d,
+            **{
+                k: rec[k]
+                for k in rec
+                if k in AdvisoryResponse.model_fields and k not in ("h3", "date")
+            },
+        )
 
     @app.get("/timeseries", response_model=TimeSeriesResponse, tags=["layers"])
     def timeseries(
         h3: str = Query(..., description="H3 cell index"),
-        var: str = Query("stress_index", description="Variable: stress_index/vci/ndvi/deficit_mm/..."),
+        var: str = Query(
+            "stress_index", description="Variable: stress_index/vci/ndvi/deficit_mm/..."
+        ),
         start: str | None = Query(None, description="ISO start date (inclusive)"),
         end: str | None = Query(None, description="ISO end date (inclusive)"),
     ) -> TimeSeriesResponse:
@@ -275,7 +301,11 @@ def create_app(
             series = store.timeseries(h3, var, start, end)
             cache.set(key, series, ttl=120)
         return TimeSeriesResponse(
-            h3=h3, var=var, start=start, end=end, count=len(series),
+            h3=h3,
+            var=var,
+            start=start,
+            end=end,
+            count=len(series),
             series=[TimeSeriesPoint(**p) for p in series],
         )
 

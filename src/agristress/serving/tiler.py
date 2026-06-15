@@ -33,12 +33,12 @@ from typing import Any
 import numpy as np
 
 __all__ = [
-    "TILE_SIZE",
     "LAYER_PALETTES",
-    "render_demo_tile",
-    "h3_to_tile",
-    "tile_bounds",
+    "TILE_SIZE",
     "describe_pmtiles_pattern",
+    "h3_to_tile",
+    "render_demo_tile",
+    "tile_bounds",
     "titiler_router",
 ]
 
@@ -47,17 +47,17 @@ TILE_SIZE = 256
 # Discrete crop-class palette (RGB). Indices align with a typical kharif legend.
 _CROP_CLASSES: list[tuple[int, int, int]] = [
     (198, 224, 180),  # 0 fallow / other
-    (33, 145, 56),    # 1 rice / paddy
-    (255, 211, 0),    # 2 wheat
-    (242, 142, 43),   # 3 maize
-    (140, 86, 199),   # 4 cotton
-    (78, 121, 167),   # 5 sugarcane
+    (33, 145, 56),  # 1 rice / paddy
+    (255, 211, 0),  # 2 wheat
+    (242, 142, 43),  # 3 maize
+    (140, 86, 199),  # 4 cotton
+    (78, 121, 167),  # 5 sugarcane
 ]
 
 # Sequential ramps (low → high) used for continuous stress / advisory rasters.
 LAYER_PALETTES: dict[str, str] = {
     "crop": "discrete",
-    "stress": "green_red",   # low stress (green) → high stress (red)
+    "stress": "green_red",  # low stress (green) → high stress (red)
     "advisory": "blue_red",  # adequate (blue) → deficit, irrigate (red)
 }
 

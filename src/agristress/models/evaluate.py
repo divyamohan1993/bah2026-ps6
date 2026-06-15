@@ -13,17 +13,17 @@ inspectable.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
 __all__ = [
-    "confusion_matrix",
-    "overall_accuracy",
-    "cohen_kappa",
-    "per_class_metrics",
     "classification_report_dict",
+    "cohen_kappa",
+    "confusion_matrix",
     "olofsson_accuracy",
+    "overall_accuracy",
+    "per_class_metrics",
 ]
 
 
@@ -250,8 +250,16 @@ def olofsson_accuracy(
         nj_hat_area = n_dot_j_hat[j]
         term1 = 0.0
         if n_j[j] > 1:
-            njj = cm[j, j]
-            term1 = (w[j] ** 2) * (1.0 - producers[j]) ** 2 * users[j] * (1.0 - users[j]) / (safe_ni[j] - 1.0) if n_i[j] > 1 and np.isfinite(users[j]) else 0.0
+            cm[j, j]
+            term1 = (
+                (w[j] ** 2)
+                * (1.0 - producers[j]) ** 2
+                * users[j]
+                * (1.0 - users[j])
+                / (safe_ni[j] - 1.0)
+                if n_i[j] > 1 and np.isfinite(users[j])
+                else 0.0
+            )
         term2 = 0.0
         for i in range(q):
             if i == j or n_i[i] <= 1:
@@ -259,7 +267,7 @@ def olofsson_accuracy(
             nij = cm[i, j]
             uij = nij / safe_ni[i]
             term2 += (w[i] ** 2) * uij * (1.0 - uij) / (safe_ni[i] - 1.0)
-        var_pj = (1.0 / (nj_hat_area ** 2)) * (term1 + (producers[j] ** 2) * term2)
+        var_pj = (1.0 / (nj_hat_area**2)) * (term1 + (producers[j] ** 2) * term2)
         se_producers[j] = np.sqrt(max(var_pj, 0.0))
 
     # --- Error-adjusted area proportions (Eq. 9-10) ---
@@ -271,7 +279,7 @@ def olofsson_accuracy(
             if n_i[i] <= 1:
                 continue
             pij = p[i, j]
-            acc += (w[i] * pij - pij ** 2) / (safe_ni[i] - 1.0)
+            acc += (w[i] * pij - pij**2) / (safe_ni[i] - 1.0)
         se_area[j] = np.sqrt(max(acc, 0.0))
 
     return {
@@ -283,7 +291,9 @@ def olofsson_accuracy(
         "users_accuracy_ci": np.column_stack([users - z * se_users, users + z * se_users]),
         "producers_accuracy": producers,
         "producers_accuracy_se": se_producers,
-        "producers_accuracy_ci": np.column_stack([producers - z * se_producers, producers + z * se_producers]),
+        "producers_accuracy_ci": np.column_stack(
+            [producers - z * se_producers, producers + z * se_producers]
+        ),
         "area_proportion": area_prop,
         "area_proportion_se": se_area,
         "area_proportion_ci": np.column_stack([area_prop - z * se_area, area_prop + z * se_area]),

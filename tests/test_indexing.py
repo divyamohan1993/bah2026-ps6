@@ -73,9 +73,7 @@ def test_cells_for_polygon_covers_interior_point():
     # Small square around (77.0, 29.0) lng/lat.
     poly = {
         "type": "Polygon",
-        "coordinates": [
-            [[76.9, 28.9], [77.1, 28.9], [77.1, 29.1], [76.9, 29.1], [76.9, 28.9]]
-        ],
+        "coordinates": [[[76.9, 28.9], [77.1, 28.9], [77.1, 29.1], [76.9, 29.1], [76.9, 28.9]]],
     }
     cells = cells_for_polygon(poly, res=7)
     assert len(cells) >= 1

@@ -174,6 +174,4 @@ def main(project: str | None = None) -> int:
 
 
 if __name__ == "__main__":  # pragma: no cover - manual entry point
-    import sys
-
     raise SystemExit(main(project=os.environ.get("EE_PROJECT")))

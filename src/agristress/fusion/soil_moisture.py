@@ -26,10 +26,10 @@ _EPS = 1e-12
 # Soil Water Index — recursive exponential filter (Wagner 1999)
 # ---------------------------------------------------------------------------
 def swi_exponential_filter(
-    ssm: "NDArray",
-    time: "NDArray",
+    ssm: NDArray,
+    time: NDArray,
     T: float = 10.0,
-) -> "NDArray":
+) -> NDArray:
     r"""Soil Water Index from surface soil moisture via a recursive exponential filter.
 
     Propagates surface soil moisture (SSM) into a root-zone Soil Water Index using
@@ -103,12 +103,12 @@ def swi_exponential_filter(
 # SMAP downscaling (interface + demo regression)
 # ---------------------------------------------------------------------------
 def downscale_smap(
-    smap: "NDArray",
-    s1: "NDArray | None" = None,
-    optical: "NDArray | None" = None,
+    smap: NDArray,
+    s1: NDArray | None = None,
+    optical: NDArray | None = None,
     *,
     model=None,
-) -> "NDArray":
+) -> NDArray:
     r"""Disaggregate coarse SMAP soil moisture to fine resolution (interface).
 
     Operational disaggregation (e.g. SMAP/Sentinel-1 active-passive, DISPATCH)
@@ -171,9 +171,9 @@ def downscale_smap(
 # Triple collocation
 # ---------------------------------------------------------------------------
 def triple_collocation(
-    x: "NDArray",
-    y: "NDArray",
-    z: "NDArray",
+    x: NDArray,
+    y: NDArray,
+    z: NDArray,
     *,
     ddof: int = 1,
 ) -> dict[str, object]:

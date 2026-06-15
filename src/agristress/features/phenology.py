@@ -20,21 +20,20 @@ by the Whittaker smoother; both are core AgriStress dependencies.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Mapping
 
 import numpy as np
 
 __all__ = [
-    "whittaker_smooth",
+    "CROP_GDD_TABLE",
+    "DoubleLogisticResult",
+    "assign_growth_stage",
     "double_logistic",
     "double_logistic_fit",
-    "DoubleLogisticResult",
+    "gdd_accumulate",
+    "growth_stage_fractions",
     "harmonic_features",
     "phenometrics",
-    "gdd_accumulate",
-    "assign_growth_stage",
-    "CROP_GDD_TABLE",
-    "growth_stage_fractions",
+    "whittaker_smooth",
 ]
 
 
@@ -72,10 +71,7 @@ def whittaker_smooth(
     n = y.size
     if n == 0:
         return y.copy()
-    if w is None:
-        w = np.ones(n, dtype=np.float64)
-    else:
-        w = np.asarray(w, dtype=np.float64).copy()
+    w = np.ones(n, dtype=np.float64) if w is None else np.asarray(w, dtype=np.float64).copy()
     # Treat NaNs as missing (weight 0, value 0 so they don't poison the solve).
     nan_mask = ~np.isfinite(y)
     y = np.where(nan_mask, 0.0, y)
@@ -274,7 +270,9 @@ def double_logistic_fit(
     # Integral of (curve - base) over the growing period.
     integ_mask = (grid >= sos) & (grid <= eos)
     if integ_mask.sum() >= 2:
-        integral = float(np.trapezoid(np.clip(curve[integ_mask] - base_value, 0, None), grid[integ_mask]))
+        integral = float(
+            np.trapezoid(np.clip(curve[integ_mask] - base_value, 0, None), grid[integ_mask])
+        )
     else:
         integral = 0.0
 
@@ -313,9 +311,9 @@ def _first_crossing(t: np.ndarray, y: np.ndarray, level: float, *, rising: bool)
         return float("nan")
     above = y >= level
     for i in range(1, t.size):
-        if rising and (not above[i - 1]) and above[i]:
-            pass
-        elif (not rising) and above[i - 1] and (not above[i]):
+        if (rising and (not above[i - 1]) and above[i]) or (
+            (not rising) and above[i - 1] and (not above[i])
+        ):
             pass
         else:
             continue
@@ -327,13 +325,23 @@ def _first_crossing(t: np.ndarray, y: np.ndarray, level: float, *, rising: bool)
     return float("nan")
 
 
-def _fallback_metrics(t: np.ndarray, vi: np.ndarray, amp_threshold: float, *, reason: str) -> DoubleLogisticResult:
+def _fallback_metrics(
+    t: np.ndarray, vi: np.ndarray, amp_threshold: float, *, reason: str
+) -> DoubleLogisticResult:
     """Derive coarse phenometrics directly from observations when the fit fails."""
     if t.size == 0:
         return DoubleLogisticResult(
-            params={}, sos=float("nan"), pos=float("nan"), eos=float("nan"),
-            lgp=float("nan"), amplitude=float("nan"), peak_value=float("nan"),
-            base_value=float("nan"), integral=float("nan"), success=False, rmse=float("nan"),
+            params={},
+            sos=float("nan"),
+            pos=float("nan"),
+            eos=float("nan"),
+            lgp=float("nan"),
+            amplitude=float("nan"),
+            peak_value=float("nan"),
+            base_value=float("nan"),
+            integral=float("nan"),
+            success=False,
+            rmse=float("nan"),
         )
     order = np.argsort(t)
     t, vi = t[order], vi[order]
@@ -350,9 +358,19 @@ def _fallback_metrics(t: np.ndarray, vi: np.ndarray, amp_threshold: float, *, re
     lgp = float(max(eos - sos, 0.0))
     integral = float(np.trapezoid(np.clip(vi - base_value, 0, None), t)) if t.size >= 2 else 0.0
     return DoubleLogisticResult(
-        params={}, sos=sos, pos=pos, eos=eos, lgp=lgp, amplitude=amplitude,
-        peak_value=peak_value, base_value=base_value, integral=integral,
-        success=False, rmse=float("nan"), t_grid=t, fitted=vi,
+        params={},
+        sos=sos,
+        pos=pos,
+        eos=eos,
+        lgp=lgp,
+        amplitude=amplitude,
+        peak_value=peak_value,
+        base_value=base_value,
+        integral=integral,
+        success=False,
+        rmse=float("nan"),
+        t_grid=t,
+        fitted=vi,
     )
 
 
@@ -542,7 +560,7 @@ CROP_GDD_TABLE: dict[str, dict[str, object]] = {
 STAGE_LABELS = ("initial", "development", "mid-season", "late-season", "mature")
 
 
-def assign_growth_stage(gdd: float | np.ndarray, crop: str = "default") -> "np.ndarray | str":
+def assign_growth_stage(gdd: float | np.ndarray, crop: str = "default") -> np.ndarray | str:
     """Map cumulative GDD to an FAO-56 growth stage for a given crop.
 
     Uses the per-crop boundaries in :data:`CROP_GDD_TABLE`.  Stages, in order:

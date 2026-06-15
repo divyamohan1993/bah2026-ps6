@@ -44,8 +44,8 @@ def _fallback_step_deg(res: int) -> float:
 
 def _fallback_latlng_to_cell(lat: float, lng: float, res: int) -> str:
     step = _fallback_step_deg(res)
-    row = int(math.floor((lat + 90.0) / step))
-    col = int(math.floor((lng + 180.0) / step))
+    row = math.floor((lat + 90.0) / step)
+    col = math.floor((lng + 180.0) / step)
     return f"f{res:02d}{row:08x}{col:08x}"
 
 
@@ -227,7 +227,7 @@ def cube_to_h3_table(
     variables: list[str] | None = None,
     aggfunc: str = "mean",
     dropna: bool = True,
-) -> "pd.DataFrame":
+) -> pd.DataFrame:
     """Flatten a ``(time, y, x)`` datacube into a tidy H3 feature table.
 
     Every pixel is indexed to its H3 cell; pixels sharing a cell at a given
@@ -275,10 +275,7 @@ def cube_to_h3_table(
     )
 
     if variables is None:
-        variables = [
-            v for v in ds.data_vars
-            if np.issubdtype(np.asarray(ds[v].dtype), np.number)
-        ]
+        variables = [v for v in ds.data_vars if np.issubdtype(np.asarray(ds[v].dtype), np.number)]
 
     frames = []
     n_pix = flat_lat.size
@@ -306,7 +303,5 @@ def cube_to_h3_table(
     if dropna:
         long = long.dropna(subset=["value"])
 
-    table = (
-        long.groupby(["h3_cell", "date", "variable"], as_index=False)["value"].agg(aggfunc)
-    )
+    table = long.groupby(["h3_cell", "date", "variable"], as_index=False)["value"].agg(aggfunc)
     return table.reset_index(drop=True)

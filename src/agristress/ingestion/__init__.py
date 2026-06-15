@@ -52,8 +52,8 @@ from agristress.ingestion.synthetic import (
 )
 
 __all__ = [
-    "BBox",
     "DEFAULT_SENSORS",
+    "BBox",
     "EarthEngineError",
     "EarthEngineUnavailable",
     "StacError",

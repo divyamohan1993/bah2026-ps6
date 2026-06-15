@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from gee._auth import EarthEngineUnavailable, get_ee, init_ee
+from gee._auth import EarthEngineUnavailable, init_ee
 
 # Common, sensor-agnostic band names used downstream (indices, classifier).
 COMMON_BANDS: list[str] = ["blue", "green", "red", "nir", "swir1", "swir2"]

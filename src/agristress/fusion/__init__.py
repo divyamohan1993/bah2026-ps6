@@ -33,21 +33,21 @@ from agristress.fusion.soil_moisture import (
 from agristress.fusion.spatiotemporal import estarfm, starfm
 
 __all__ = [
-    # spatiotemporal
-    "starfm",
+    # datacube
+    "build_datacube",
+    "downscale_smap",
     "estarfm",
     # sar_optical
     "gap_fill_temporal",
-    "whittaker_smooth",
-    "savitzky_golay",
-    "sar_to_ndvi",
     "multi_sensor_consensus",
+    "open_zarr",
+    "sar_to_ndvi",
+    "savitzky_golay",
+    # spatiotemporal
+    "starfm",
     # soil_moisture
     "swi_exponential_filter",
-    "downscale_smap",
-    "triple_collocation",
-    # datacube
-    "build_datacube",
     "to_zarr",
-    "open_zarr",
+    "triple_collocation",
+    "whittaker_smooth",
 ]

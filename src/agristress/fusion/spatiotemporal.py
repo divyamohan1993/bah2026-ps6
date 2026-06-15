@@ -30,7 +30,7 @@ if TYPE_CHECKING:  # pragma: no cover
 _EPS = 1e-6
 
 
-def _moving_windows(img: "NDArray", win: int) -> "NDArray":
+def _moving_windows(img: NDArray, win: int) -> NDArray:
     """Stack of ``win x win`` neighbourhoods for every pixel (edge-padded).
 
     Returns an array shaped ``(H, W, win*win)``.
@@ -48,14 +48,14 @@ def _moving_windows(img: "NDArray", win: int) -> "NDArray":
 
 
 def starfm(
-    fine_t0: "NDArray",
-    coarse_t0: "NDArray",
-    coarse_t1: "NDArray",
+    fine_t0: NDArray,
+    coarse_t0: NDArray,
+    coarse_t1: NDArray,
     *,
     win: int = 25,
     spectral_tol: float | None = None,
     n_classes: int = 4,
-) -> "NDArray":
+) -> NDArray:
     r"""Predict a fine-resolution image at ``t1`` from one fine/coarse pair at ``t0``.
 
     Simplified STARFM (Gao et al. 2006). For each target pixel a local
@@ -133,16 +133,16 @@ def starfm(
 
 
 def estarfm(
-    fine_t0: "NDArray",
-    coarse_t0: "NDArray",
-    fine_t2: "NDArray",
-    coarse_t2: "NDArray",
-    coarse_t1: "NDArray",
+    fine_t0: NDArray,
+    coarse_t0: NDArray,
+    fine_t2: NDArray,
+    coarse_t2: NDArray,
+    coarse_t1: NDArray,
     *,
     win: int = 25,
     spectral_tol: float | None = None,
     n_classes: int = 4,
-) -> "NDArray":
+) -> NDArray:
     r"""Enhanced STARFM prediction at ``t1`` from **two** fine/coarse pairs.
 
     Simplified ESTARFM (Zhu et al. 2010). Two STARFM predictions are made — one

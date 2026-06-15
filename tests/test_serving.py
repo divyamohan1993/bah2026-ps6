@@ -9,12 +9,12 @@ from __future__ import annotations
 import pytest
 
 pytest.importorskip("fastapi", reason="serving extra (fastapi) not installed")
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from agristress.serving.api import create_app  # noqa: E402
-from agristress.serving.cache import Cache, cache_key  # noqa: E402
-from agristress.serving.store import seed_demo_store  # noqa: E402
-from agristress.serving.tiler import h3_to_tile, render_demo_tile  # noqa: E402
+from agristress.serving.api import create_app
+from agristress.serving.cache import Cache, cache_key
+from agristress.serving.store import seed_demo_store
+from agristress.serving.tiler import h3_to_tile, render_demo_tile
 
 
 @pytest.fixture(scope="module")
@@ -76,9 +76,7 @@ def test_advisory_returns_seeded_json(client: TestClient, first_cell: str) -> No
     assert resp.status_code == 200
     body = resp.json()
     assert body["deficit_mm"] >= 0.0
-    assert body["status"] in {
-        "adequate", "mild_deficit", "moderate_deficit", "severe_deficit"
-    }
+    assert body["status"] in {"adequate", "mild_deficit", "moderate_deficit", "severe_deficit"}
     assert "recommended_action" in body
 
 

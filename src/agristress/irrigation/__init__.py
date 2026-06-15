@@ -10,6 +10,15 @@ worked examples (see ``tests/test_irrigation.py``).
 
 from __future__ import annotations
 
+from .advisory import (
+    Advisory,
+    CommandAreaPlan,
+    FieldAdvisory,
+    IrrigationAdvisory,
+    IrrigationStatus,
+    advisory_map,
+    aggregate_to_command,
+)
 from .et0 import (
     et0_hargreaves,
     et0_penman_monteith,
@@ -32,42 +41,33 @@ from .water_balance import (
     stress_coefficient,
     swi_from_surface_sm,
 )
-from .advisory import (
-    Advisory,
-    CommandAreaPlan,
-    FieldAdvisory,
-    IrrigationAdvisory,
-    IrrigationStatus,
-    advisory_map,
-    aggregate_to_command,
-)
 
 __all__ = [
-    # et0
-    "et0_penman_monteith",
-    "et0_hargreaves",
-    "extraterrestrial_radiation",
-    # kc
-    "kc_for_stage",
-    "kc_curve",
-    "kc_from_ndvi",
-    "adjust_kc_mid_for_climate",
-    "get_crop",
+    "Advisory",
+    "CommandAreaPlan",
     "CropCoefficients",
-    # water balance
-    "SoilProperties",
-    "RootZoneWaterBalance",
-    "stress_coefficient",
-    "eight_day_deficit",
-    "effective_rainfall_usda_monthly",
-    "effective_rainfall_scs_cn",
-    "swi_from_surface_sm",
+    "FieldAdvisory",
     # advisory
     "IrrigationAdvisory",
     "IrrigationStatus",
-    "Advisory",
-    "FieldAdvisory",
-    "CommandAreaPlan",
-    "aggregate_to_command",
+    "RootZoneWaterBalance",
+    # water balance
+    "SoilProperties",
+    "adjust_kc_mid_for_climate",
     "advisory_map",
+    "aggregate_to_command",
+    "effective_rainfall_scs_cn",
+    "effective_rainfall_usda_monthly",
+    "eight_day_deficit",
+    "et0_hargreaves",
+    # et0
+    "et0_penman_monteith",
+    "extraterrestrial_radiation",
+    "get_crop",
+    "kc_curve",
+    # kc
+    "kc_for_stage",
+    "kc_from_ndvi",
+    "stress_coefficient",
+    "swi_from_surface_sm",
 ]

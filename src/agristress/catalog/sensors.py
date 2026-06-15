@@ -742,31 +742,23 @@ def get_sensor(sensor_id: str) -> SensorSpec:
 
 def by_tier(tier: int) -> list[SensorSpec]:
     """All sensors in the given operational tier (1/2/3), sorted by id."""
-    return sorted(
-        (s for s in SENSOR_REGISTRY.values() if s.tier == tier), key=lambda s: s.id
-    )
+    return sorted((s for s in SENSOR_REGISTRY.values() if s.tier == tier), key=lambda s: s.id)
 
 
 def by_type(sensor_type: SensorType | str) -> list[SensorSpec]:
     """All sensors of a given :class:`SensorType` (accepts the enum or its name)."""
     st = SensorType(sensor_type) if not isinstance(sensor_type, SensorType) else sensor_type
-    return sorted(
-        (s for s in SENSOR_REGISTRY.values() if s.sensor_type is st), key=lambda s: s.id
-    )
+    return sorted((s for s in SENSOR_REGISTRY.values() if s.sensor_type is st), key=lambda s: s.id)
 
 
 def gee_native() -> list[SensorSpec]:
     """All sensors that expose a Google Earth Engine ``gee_asset_id``, sorted by id."""
-    return sorted(
-        (s for s in SENSOR_REGISTRY.values() if s.gee_asset_id), key=lambda s: s.id
-    )
+    return sorted((s for s in SENSOR_REGISTRY.values() if s.gee_asset_id), key=lambda s: s.id)
 
 
 def stac_native() -> list[SensorSpec]:
     """All sensors reachable via a STAC ``stac_collection``, sorted by id."""
-    return sorted(
-        (s for s in SENSOR_REGISTRY.values() if s.stac_collection), key=lambda s: s.id
-    )
+    return sorted((s for s in SENSOR_REGISTRY.values() if s.stac_collection), key=lambda s: s.id)
 
 
 def gap_fillers_for(failure_mode: str) -> list[SensorSpec]:
@@ -778,9 +770,7 @@ def gap_fillers_for(failure_mode: str) -> list[SensorSpec]:
     them in an operational fallback chain.
     """
     if failure_mode not in FAILURE_MODES:
-        raise ValueError(
-            f"Unknown failure_mode {failure_mode!r}; valid modes are {FAILURE_MODES}"
-        )
+        raise ValueError(f"Unknown failure_mode {failure_mode!r}; valid modes are {FAILURE_MODES}")
     _cost_rank = {Cost.FREE: 0, Cost.OPEN: 1, Cost.COMMERCIAL: 2}
     matches = [s for s in SENSOR_REGISTRY.values() if failure_mode in s.fills_gaps]
     return sorted(matches, key=lambda s: (s.tier, _cost_rank[s.cost], s.id))
@@ -808,9 +798,7 @@ def _validate_registry() -> None:
         for fname in REQUIRED_FIELDS:
             value = getattr(spec, fname)
             if value is None or (isinstance(value, str) and not value.strip()):
-                raise RuntimeError(
-                    f"Sensor {spec.id!r} is missing required field {fname!r}"
-                )
+                raise RuntimeError(f"Sensor {spec.id!r} is missing required field {fname!r}")
 
 
 _validate_registry()

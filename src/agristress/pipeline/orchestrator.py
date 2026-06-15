@@ -109,7 +109,9 @@ class Pipeline:
     stages consume; missing siblings fall back to synthetic generation.
     """
 
-    def __init__(self, store: FeatureStore | None = None, out_dir: str | Path | None = None) -> None:
+    def __init__(
+        self, store: FeatureStore | None = None, out_dir: str | Path | None = None
+    ) -> None:
         self.store = store if store is not None else FeatureStore()
         self.out_dir = Path(out_dir) if out_dir else Path("outputs")
         self.context: dict[str, Any] = {}
@@ -168,8 +170,11 @@ class Pipeline:
         )
         logger.info(
             "demo complete: %d cells, %d records, %d artifacts (%d stages real, %d fallback)",
-            result.n_cells, result.n_records, len(artifacts),
-            len(self.stages_run), len(self.stages_fallback),
+            result.n_cells,
+            result.n_records,
+            len(artifacts),
+            len(self.stages_run),
+            len(self.stages_fallback),
         )
         return result
 
@@ -215,8 +220,15 @@ class Pipeline:
             path = self.out_dir / f"stress_{season}_demo.tif"
             transform = from_bounds(76.5, 30.4, 77.0, 30.9, 64, 64)
             with rasterio.open(
-                path, "w", driver="GTiff", height=64, width=64, count=1,
-                dtype="float32", crs="EPSG:4326", transform=transform,
+                path,
+                "w",
+                driver="GTiff",
+                height=64,
+                width=64,
+                count=1,
+                dtype="float32",
+                crs="EPSG:4326",
+                transform=transform,
             ) as dst:
                 dst.write(data, 1)
             return str(path)
@@ -224,7 +236,9 @@ class Pipeline:
             return None
 
 
-def run_demo(aoi: str = "CMD-001", season: str = "kharif", out_dir: str | Path | None = None) -> PipelineResult:
+def run_demo(
+    aoi: str = "CMD-001", season: str = "kharif", out_dir: str | Path | None = None
+) -> PipelineResult:
     """Module-level convenience wrapper around :meth:`Pipeline.run_demo`."""
 
     return Pipeline(out_dir=out_dir).run_demo(aoi=aoi, season=season)

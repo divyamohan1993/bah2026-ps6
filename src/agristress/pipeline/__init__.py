@@ -7,7 +7,7 @@ Ties the science stages (catalog → ingestion → preprocessing → fusion → 
 
 from __future__ import annotations
 
-__all__ = ["Pipeline", "PipelineResult", "run_demo", "main", "app"]
+__all__ = ["Pipeline", "PipelineResult", "app", "main", "run_demo"]
 
 
 def __getattr__(name: str):  # PEP 562 lazy access keeps imports light

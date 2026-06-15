@@ -18,22 +18,22 @@ Everything is numpy-vectorised and NaN-safe.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 import numpy as np
 
 __all__ = [
-    "optram_soil_moisture",
-    "vci",
-    "tci",
-    "vhi",
-    "tvdi",
-    "cwsi",
-    "anomaly_vs_baseline",
-    "StageAwareStress",
-    "SEVERITY_LABELS",
     "DEFAULT_STAGE_THRESHOLDS",
+    "SEVERITY_LABELS",
+    "StageAwareStress",
+    "anomaly_vs_baseline",
+    "cwsi",
+    "optram_soil_moisture",
+    "tci",
+    "tvdi",
+    "vci",
+    "vhi",
 ]
 
 _EPS = 1e-12
@@ -48,7 +48,9 @@ SEVERITY_LABELS = {
 }
 
 
-def _safe_norm(num: np.ndarray, den: np.ndarray, *, clip: tuple[float, float] | None = (0.0, 1.0)) -> np.ndarray:
+def _safe_norm(
+    num: np.ndarray, den: np.ndarray, *, clip: tuple[float, float] | None = (0.0, 1.0)
+) -> np.ndarray:
     out = np.full(np.broadcast_shapes(num.shape, den.shape), np.nan, dtype=np.float64)
     valid = (np.abs(den) >= _EPS) & np.isfinite(num) & np.isfinite(den)
     np.divide(num, den, out=out, where=valid)
@@ -200,7 +202,9 @@ def cwsi(
     dt = tc - ta
     num = dt - lower_limit
     den = np.asarray(upper_limit - lower_limit, dtype=np.float64)
-    return _safe_norm(num, np.full_like(dt, float(den)) if np.ndim(den) == 0 else den, clip=(0.0, 1.0))
+    return _safe_norm(
+        num, np.full_like(dt, float(den)) if np.ndim(den) == 0 else den, clip=(0.0, 1.0)
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -296,7 +300,9 @@ class StageAwareStress:
         *,
         higher_is_stress: bool = False,
     ) -> None:
-        self.thresholds = dict(thresholds) if thresholds is not None else dict(DEFAULT_STAGE_THRESHOLDS)
+        self.thresholds = (
+            dict(thresholds) if thresholds is not None else dict(DEFAULT_STAGE_THRESHOLDS)
+        )
         if "default" not in self.thresholds:
             self.thresholds["default"] = DEFAULT_STAGE_THRESHOLDS["default"]
         self.higher_is_stress = higher_is_stress
@@ -307,7 +313,7 @@ class StageAwareStress:
     def classify(
         self,
         index_value: np.ndarray,
-        stage: "str | np.ndarray",
+        stage: str | np.ndarray,
     ) -> StressResult:
         """Classify stress severity for one or many samples.
 
@@ -357,7 +363,10 @@ class StageAwareStress:
             else:
                 severity[i] = 4
 
-        labels = np.array([SEVERITY_LABELS.get(int(s), "unknown") if s >= 0 else "no_data" for s in severity], dtype=object)
+        labels = np.array(
+            [SEVERITY_LABELS.get(int(s), "unknown") if s >= 0 else "no_data" for s in severity],
+            dtype=object,
+        )
         stressed = severity >= 1
         return StressResult(
             severity=severity,

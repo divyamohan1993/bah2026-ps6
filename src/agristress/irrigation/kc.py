@@ -15,10 +15,10 @@ set ``AGRISTRESS_KC_CONFIG``) to override the default search.
 from __future__ import annotations
 
 import os
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional, Sequence
 
 import numpy as np
 import yaml
@@ -26,14 +26,14 @@ import yaml
 __all__ = [
     "STAGES",
     "CropCoefficients",
-    "load_kc_config",
+    "adjust_kc_mid_for_climate",
     "available_crops",
     "get_crop",
-    "kc_for_stage",
-    "kc_curve",
-    "kc_from_ndvi",
-    "adjust_kc_mid_for_climate",
     "growth_stage_for_das",
+    "kc_curve",
+    "kc_for_stage",
+    "kc_from_ndvi",
+    "load_kc_config",
 ]
 
 #: Canonical FAO-56 growth-stage names, in chronological order.
@@ -81,14 +81,14 @@ def _default_config_path() -> Path:
 
 @lru_cache(maxsize=8)
 def _load_yaml(path: str) -> dict:
-    with open(path, "r", encoding="utf-8") as fh:
+    with open(path, encoding="utf-8") as fh:
         data = yaml.safe_load(fh)
     if not isinstance(data, dict) or "crops" not in data:
         raise ValueError(f"Malformed kc_curves config (missing 'crops'): {path}")
     return data
 
 
-def load_kc_config(config_path: Optional[os.PathLike | str] = None) -> dict:
+def load_kc_config(config_path: os.PathLike | str | None = None) -> dict:
     """Return the parsed Kc configuration dict (cached)."""
     path = Path(config_path) if config_path is not None else _default_config_path()
     if not path.is_file():
@@ -120,21 +120,17 @@ class CropCoefficients:
         return (l_ini, l_ini + l_dev, l_ini + l_dev + l_mid, l_ini + l_dev + l_mid + l_late)
 
 
-def available_crops(config_path: Optional[os.PathLike | str] = None) -> list[str]:
+def available_crops(config_path: os.PathLike | str | None = None) -> list[str]:
     """List crop keys present in the configuration."""
     return sorted(load_kc_config(config_path)["crops"].keys())
 
 
-def get_crop(
-    crop: str, config_path: Optional[os.PathLike | str] = None
-) -> CropCoefficients:
+def get_crop(crop: str, config_path: os.PathLike | str | None = None) -> CropCoefficients:
     """Return :class:`CropCoefficients` for *crop* (case-insensitive)."""
     cfg = load_kc_config(config_path)["crops"]
     key = crop.lower()
     if key not in cfg:
-        raise KeyError(
-            f"Unknown crop '{crop}'. Available: {sorted(cfg.keys())}"
-        )
+        raise KeyError(f"Unknown crop '{crop}'. Available: {sorted(cfg.keys())}")
     c = cfg[key]
     sl = tuple(int(x) for x in c["stage_lengths_days"])
     if len(sl) != 4:
@@ -155,14 +151,10 @@ def _normalise_stage(stage: str) -> str:
     key = str(stage).strip().lower()
     if key in _STAGE_ALIASES:
         return _STAGE_ALIASES[key]
-    raise KeyError(
-        f"Unknown growth stage '{stage}'. Use one of {STAGES} (or aliases)."
-    )
+    raise KeyError(f"Unknown growth stage '{stage}'. Use one of {STAGES} (or aliases).")
 
 
-def kc_for_stage(
-    crop: str, stage: str, config_path: Optional[os.PathLike | str] = None
-) -> float:
+def kc_for_stage(crop: str, stage: str, config_path: os.PathLike | str | None = None) -> float:
     """Return the representative Kc for a named growth *stage* of *crop*.
 
     The development ("dev") stage is transitional; its representative value is the
@@ -180,7 +172,7 @@ def kc_for_stage(
 
 
 def growth_stage_for_das(
-    crop: str, days_after_sowing: float, config_path: Optional[os.PathLike | str] = None
+    crop: str, days_after_sowing: float, config_path: os.PathLike | str | None = None
 ) -> str:
     """Return the stage name ('ini'|'dev'|'mid'|'late') for a day-after-sowing."""
     c = get_crop(crop, config_path)
@@ -198,7 +190,7 @@ def growth_stage_for_das(
 def kc_curve(
     crop: str,
     days_after_sowing: float | Sequence[float] | np.ndarray,
-    config_path: Optional[os.PathLike | str] = None,
+    config_path: os.PathLike | str | None = None,
 ) -> np.ndarray:
     """Single crop coefficient Kc(t) from the 4-stage FAO-56 curve.
 
@@ -230,10 +222,7 @@ def kc_curve(
 
     # development : linear ini -> mid
     m_dev = (das > b_ini) & (das <= b_dev)
-    if l_dev > 0:
-        frac = (das[m_dev] - b_ini) / float(l_dev)
-    else:
-        frac = np.zeros(np.count_nonzero(m_dev))
+    frac = (das[m_dev] - b_ini) / float(l_dev) if l_dev > 0 else np.zeros(np.count_nonzero(m_dev))
     kc[m_dev] = c.kc_ini + frac * (c.kc_mid - c.kc_ini)
 
     # mid season : flat

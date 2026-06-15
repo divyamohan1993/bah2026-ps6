@@ -139,7 +139,12 @@ def load_sensor(
     # ---- offline / synthetic --------------------------------------------
     if use_demo:
         stack = synth_stack_for_sensor(
-            spec, aoi=aoi, start=str(_iso(s)), end=str(_iso(e)), n_time=n_time, size=size,
+            spec,
+            aoi=aoi,
+            start=str(_iso(s)),
+            end=str(_iso(e)),
+            n_time=n_time,
+            size=size,
             source="loader_demo",
         )
         stack.provenance.update(_provenance_for(spec, _family_of(spec), "demo", True))
@@ -160,8 +165,15 @@ def load_sensor(
         return _attach_provenance(result, _provenance_for(spec, _family_of(spec), "gee", False))
 
     # ---- portal-only sensor: synthesise ---------------------------------
-    stack = synth_stack_for_sensor(spec, aoi=aoi, start=str(_iso(s)), end=str(_iso(e)),
-                                   n_time=n_time, size=size, source="loader_portal_demo")
+    stack = synth_stack_for_sensor(
+        spec,
+        aoi=aoi,
+        start=str(_iso(s)),
+        end=str(_iso(e)),
+        n_time=n_time,
+        size=size,
+        source="loader_portal_demo",
+    )
     stack.provenance.update(_provenance_for(spec, _family_of(spec), "demo", True))
     return _maybe_xarray(stack, as_xarray)
 
@@ -188,51 +200,92 @@ def load_family(
 # ---------------------------------------------------------------------------
 # Thin family-named convenience wrappers (stable public API)
 # ---------------------------------------------------------------------------
-def load_optical_sr(aoi: BBox | Any = None, start: Any = None, end: Any = None,
-                    *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                    **kwargs: Any) -> LoadResult:
+def load_optical_sr(
+    aoi: BBox | Any = None,
+    start: Any = None,
+    end: Any = None,
+    *,
+    sensor: SensorSpec | str | None = None,
+    demo: bool = False,
+    **kwargs: Any,
+) -> LoadResult:
     """Optical surface-reflectance family (Sentinel-2 default)."""
     return load_family("optical_sr", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
-def load_sar_grd(aoi: BBox | Any = None, start: Any = None, end: Any = None,
-                 *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                 **kwargs: Any) -> LoadResult:
+def load_sar_grd(
+    aoi: BBox | Any = None,
+    start: Any = None,
+    end: Any = None,
+    *,
+    sensor: SensorSpec | str | None = None,
+    demo: bool = False,
+    **kwargs: Any,
+) -> LoadResult:
     """SAR ground-range-detected family (Sentinel-1 default)."""
     return load_family("sar_grd", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
-def load_soil_moisture(aoi: BBox | Any = None, start: Any = None, end: Any = None,
-                       *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                       **kwargs: Any) -> LoadResult:
+def load_soil_moisture(
+    aoi: BBox | Any = None,
+    start: Any = None,
+    end: Any = None,
+    *,
+    sensor: SensorSpec | str | None = None,
+    demo: bool = False,
+    **kwargs: Any,
+) -> LoadResult:
     """Soil-moisture family (SMAP default; also accepts L-band SAR)."""
     return load_family("soil_moisture", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
-def load_precip(aoi: BBox | Any = None, start: Any = None, end: Any = None,
-                *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                **kwargs: Any) -> LoadResult:
+def load_precip(
+    aoi: BBox | Any = None,
+    start: Any = None,
+    end: Any = None,
+    *,
+    sensor: SensorSpec | str | None = None,
+    demo: bool = False,
+    **kwargs: Any,
+) -> LoadResult:
     """Precipitation family (CHIRPS default)."""
     return load_family("precip", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
-def load_thermal_et(aoi: BBox | Any = None, start: Any = None, end: Any = None,
-                    *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                    **kwargs: Any) -> LoadResult:
+def load_thermal_et(
+    aoi: BBox | Any = None,
+    start: Any = None,
+    end: Any = None,
+    *,
+    sensor: SensorSpec | str | None = None,
+    demo: bool = False,
+    **kwargs: Any,
+) -> LoadResult:
     """Thermal / evapotranspiration family (ECOSTRESS default)."""
     return load_family("thermal_et", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
-def load_dem(aoi: BBox | Any = None, *, sensor: SensorSpec | str | None = None,
-             demo: bool = False, **kwargs: Any) -> LoadResult:
+def load_dem(
+    aoi: BBox | Any = None,
+    *,
+    sensor: SensorSpec | str | None = None,
+    demo: bool = False,
+    **kwargs: Any,
+) -> LoadResult:
     """Digital-elevation family (Copernicus DEM GLO-30 default). Static: no date range."""
     kwargs.setdefault("n_time", 1)
     return load_family("dem", aoi, None, None, sensor=sensor, demo=demo, **kwargs)
 
 
-def load_embeddings(aoi: BBox | Any = None, start: Any = None, end: Any = None,
-                    *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                    **kwargs: Any) -> LoadResult:
+def load_embeddings(
+    aoi: BBox | Any = None,
+    start: Any = None,
+    end: Any = None,
+    *,
+    sensor: SensorSpec | str | None = None,
+    demo: bool = False,
+    **kwargs: Any,
+) -> LoadResult:
     """Learned satellite-embedding family (AlphaEarth annual default)."""
     return load_family("embeddings", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
