@@ -56,9 +56,17 @@ def _try_import(module_path: str) -> Any | None:
 def _resolve_entrypoint(mod: Any, names: tuple[str, ...]) -> Any | None:
     for name in names:
         fn = getattr(mod, name, None)
-        if fn is not None:
+        # Must be callable *and* not a submodule that merely shares the name
+        # (e.g. ``agristress.irrigation.advisory`` is a module, not a function).
+        if callable(fn) and not _ismodule(fn):
             return fn
     return None
+
+
+def _ismodule(obj: Any) -> bool:
+    import types
+
+    return isinstance(obj, types.ModuleType)
 
 
 @dataclass

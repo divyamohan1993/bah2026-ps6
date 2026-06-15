@@ -229,7 +229,10 @@ def seed_demo_store(
     same store, so tests and demos are reproducible.
     """
 
-    store = store or FeatureStore()
+    # NB: use an explicit ``is None`` check — an empty FeatureStore is falsy
+    # (``__len__`` == 0), so ``store or FeatureStore()`` would silently discard
+    # a caller-supplied empty store and populate a throwaway instead.
+    store = FeatureStore() if store is None else store
     cells = demo_h3_cells(n_cells)
     dates = demo_dates(season, n_dates)
 
