@@ -24,6 +24,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
     import ee  # noqa: F401
 
 __all__ = [
+    "EarthEngineError",
     "EarthEngineUnavailable",
     "ee_available",
     "init_ee",
@@ -31,8 +32,12 @@ __all__ = [
 ]
 
 
-class EarthEngineUnavailable(RuntimeError):
+class EarthEngineError(RuntimeError):
     """Raised when an Earth Engine operation is requested but EE cannot be used."""
+
+
+# Backward-compatible alias (kept so existing imports keep working).
+EarthEngineUnavailable = EarthEngineError
 
 
 # Module-level cache of the imported ``ee`` module + init flag, to avoid re-importing.
@@ -47,7 +52,7 @@ def _try_import_ee() -> Any | None:
         return _EE_MODULE
     try:
         import ee  # type: ignore
-    except Exception:  # noqa: BLE001 - any import error means EE is unusable here
+    except Exception:
         return None
     _EE_MODULE = ee
     return ee
@@ -78,7 +83,7 @@ def init_ee(project: str | None = None, *, high_volume: bool = False) -> Any:
     global _EE_INITIALIZED
     ee = _try_import_ee()
     if ee is None:
-        raise EarthEngineUnavailable(
+        raise EarthEngineError(
             "earthengine-api is not installed. Install it (`pip install earthengine-api`) "
             "and run `earthengine authenticate`, or call the loaders with demo=True to use "
             "the offline synthetic fallback."
@@ -96,8 +101,8 @@ def init_ee(project: str | None = None, *, high_volume: bool = False) -> Any:
                 kwargs["opt_url"] = opt_url
         ee.Initialize(**kwargs)
         _EE_INITIALIZED = True
-    except Exception as exc:  # noqa: BLE001 - surface a single clear error
-        raise EarthEngineUnavailable(
+    except Exception as exc:
+        raise EarthEngineError(
             "Earth Engine failed to initialise (missing/invalid credentials?). Run "
             "`earthengine authenticate` or pass demo=True to use the offline fallback. "
             f"Underlying error: {exc}"
@@ -122,7 +127,7 @@ def load_collection(
     project: str | None = None,
     n_time: int = 6,
     size: int = 32,
-) -> "Any | SyntheticStack":
+) -> Any | SyntheticStack:
     """Load a sensor's collection over an AOI/date range.
 
     When Earth Engine is available and ``demo`` is ``False`` this returns a real,

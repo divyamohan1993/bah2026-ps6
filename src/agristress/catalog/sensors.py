@@ -32,28 +32,28 @@ import time, so this module stays offline-safe.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, fields
-from enum import Enum
+from enum import StrEnum
 
 __all__ = [
-    "SensorType",
+    "FAILURE_MODES",
+    "SENSOR_REGISTRY",
     "Cost",
     "SensorSpec",
-    "SENSOR_REGISTRY",
-    "FAILURE_MODES",
-    "get_sensor",
+    "SensorType",
     "by_tier",
     "by_type",
-    "gee_native",
-    "stac_native",
     "gap_fillers_for",
+    "gee_native",
+    "get_sensor",
     "registry_summary",
+    "stac_native",
 ]
 
 
 # ---------------------------------------------------------------------------
 # Enumerations
 # ---------------------------------------------------------------------------
-class SensorType(str, Enum):
+class SensorType(StrEnum):
     """Broad physical family of an EO sensor / product."""
 
     OPTICAL = "OPTICAL"
@@ -66,7 +66,7 @@ class SensorType(str, Enum):
     ANCILLARY = "ANCILLARY"  # land-cover, reanalysis, embeddings, etc.
 
 
-class Cost(str, Enum):
+class Cost(StrEnum):
     """Data-access cost / licensing class."""
 
     FREE = "FREE"  # free, no registration / fully public

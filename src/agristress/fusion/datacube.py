@@ -301,6 +301,8 @@ def to_zarr(ds, path, *, mode: str = "w", chunks: dict | None = None):
         Write mode (``"w"`` overwrite by default).
     chunks
         Optional rechunking before write, e.g. ``{"time": 1, "y": 256, "x": 256}``.
+        Requires ``dask``; silently skipped (with the cube written un-chunked) when
+        dask is not installed, so the call stays usable in a minimal environment.
 
     Returns
     -------
@@ -308,7 +310,11 @@ def to_zarr(ds, path, *, mode: str = "w", chunks: dict | None = None):
     """
     _require_xarray()
     if chunks:
-        ds = ds.chunk(chunks)
+        try:
+            ds = ds.chunk(chunks)
+        except ImportError:
+            # dask not available — write eagerly without dask-backed chunking.
+            pass
     return ds.to_zarr(path, mode=mode)
 
 

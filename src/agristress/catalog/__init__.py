@@ -15,9 +15,9 @@ Public API
 from __future__ import annotations
 
 from agristress.catalog.assets import (
+    STAC_ENDPOINTS,
     AccessMethod,
     AssetRef,
-    STAC_ENDPOINTS,
     StacEndpoint,
     default_stac_endpoint_for,
     resolve_asset,
@@ -38,24 +38,22 @@ from agristress.catalog.sensors import (
 )
 
 __all__ = [
-    # sensors
+    "FAILURE_MODES",
+    "SENSOR_REGISTRY",
+    "STAC_ENDPOINTS",
+    "AccessMethod",
+    "AssetRef",
+    "Cost",
     "SensorSpec",
     "SensorType",
-    "Cost",
-    "SENSOR_REGISTRY",
-    "FAILURE_MODES",
-    "get_sensor",
+    "StacEndpoint",
     "by_tier",
     "by_type",
-    "gee_native",
-    "stac_native",
-    "gap_fillers_for",
-    "registry_summary",
-    # assets
-    "AccessMethod",
-    "StacEndpoint",
-    "STAC_ENDPOINTS",
-    "AssetRef",
-    "resolve_asset",
     "default_stac_endpoint_for",
+    "gap_fillers_for",
+    "gee_native",
+    "get_sensor",
+    "registry_summary",
+    "resolve_asset",
+    "stac_native",
 ]

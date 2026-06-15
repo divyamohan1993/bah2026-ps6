@@ -13,21 +13,21 @@ opens a network connection. Actual data access lives in :mod:`agristress.ingesti
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from agristress.catalog.sensors import SENSOR_REGISTRY, SensorSpec, get_sensor
 
 __all__ = [
-    "AccessMethod",
-    "StacEndpoint",
     "STAC_ENDPOINTS",
+    "AccessMethod",
     "AssetRef",
-    "resolve_asset",
+    "StacEndpoint",
     "default_stac_endpoint_for",
+    "resolve_asset",
 ]
 
 
-class AccessMethod(str, Enum):
+class AccessMethod(StrEnum):
     """How a resolved asset should be opened."""
 
     GEE = "GEE"
@@ -35,7 +35,7 @@ class AccessMethod(str, Enum):
     PORTAL = "PORTAL"  # no cloud-native handle; manual portal download (e.g. tasking)
 
 
-class StacEndpoint(str, Enum):
+class StacEndpoint(StrEnum):
     """Logical names for the STAC APIs AgriStress knows about."""
 
     PLANETARY_COMPUTER = "planetary_computer"

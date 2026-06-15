@@ -23,28 +23,33 @@ from agristress.ingestion.synthetic import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
-    import xarray as xr  # noqa: F401
+    import xarray as xr
 
 __all__ = [
+    "StacError",
     "StacUnavailable",
-    "stac_available",
-    "resolve_endpoint",
-    "open_client",
-    "search",
     "load_items",
+    "open_client",
+    "resolve_endpoint",
+    "search",
     "search_sensor",
+    "stac_available",
 ]
 
 
-class StacUnavailable(RuntimeError):
+class StacError(RuntimeError):
     """Raised when a STAC operation needs ``pystac-client`` but it is not installed."""
+
+
+# Backward-compatible alias (kept so existing imports keep working).
+StacUnavailable = StacError
 
 
 def stac_available() -> bool:
     """Return ``True`` if ``pystac-client`` can be imported."""
     try:
         import pystac_client  # type: ignore # noqa: F401
-    except Exception:  # noqa: BLE001
+    except Exception:
         return False
     return True
 
@@ -78,8 +83,8 @@ def open_client(endpoint: str | StacEndpoint = StacEndpoint.PLANETARY_COMPUTER) 
     """
     try:
         from pystac_client import Client  # type: ignore
-    except Exception as exc:  # noqa: BLE001
-        raise StacUnavailable(
+    except Exception as exc:
+        raise StacError(
             "pystac-client is not installed. Install it (`pip install pystac-client`) or "
             "call search()/load_items() with demo=True for the offline fallback."
         ) from exc
@@ -97,7 +102,7 @@ def _planetary_computer_modifier(url: str) -> Any | None:
         import planetary_computer as pc  # type: ignore
 
         return pc.sign_inplace
-    except Exception:  # noqa: BLE001 - unsigned access still works for searching
+    except Exception:
         return None
 
 
@@ -191,7 +196,7 @@ def load_items(
     resolution: float | None = None,
     sensor: SensorSpec | str | None = None,
     demo: bool = False,
-) -> "xr.DataArray | SyntheticStack":
+) -> xr.DataArray | SyntheticStack:
     """Open matched STAC items into an :class:`xarray.DataArray` (or synthetic fallback).
 
     Tries ``odc.stac.load`` first, then ``stackstac.stack``. If neither library is
@@ -217,7 +222,7 @@ def load_items(
             chunks={},
         )
         return ds
-    except Exception:  # noqa: BLE001 - fall through to stackstac
+    except Exception:
         pass
 
     # ---- stackstac ------------------------------------------------------
@@ -230,7 +235,7 @@ def load_items(
             bounds_latlon=tuple(normalize_bbox(bbox)) if bbox is not None else None,
             resolution=resolution,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         # Last resort: synthetic, so the pipeline never hard-fails offline.
         spec = _coerce_sensor(sensor, items)
         stack = synth_stack_for_sensor(spec, aoi=bbox, source="stac_demo_fallback")

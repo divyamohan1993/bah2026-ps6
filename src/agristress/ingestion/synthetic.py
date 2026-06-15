@@ -25,13 +25,13 @@ import numpy as np
 from agristress.catalog.sensors import SensorSpec, SensorType
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
-    import xarray as xr  # noqa: F401
+    import xarray as xr
 
 __all__ = [
     "BBox",
     "SyntheticStack",
-    "normalize_bbox",
     "make_time_axis",
+    "normalize_bbox",
     "synth_stack_for_sensor",
 ]
 
@@ -132,7 +132,7 @@ class SyntheticStack:
             f"bands={self.bands}, times=[{self.times[0]}..{self.times[-1]}])"
         )
 
-    def to_xarray(self) -> "xr.DataArray":
+    def to_xarray(self) -> xr.DataArray:
         """Return an :class:`xarray.DataArray` view (requires ``xarray``).
 
         Raises

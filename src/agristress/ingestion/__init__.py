@@ -18,6 +18,7 @@ Public API
 from __future__ import annotations
 
 from agristress.ingestion.gee_client import (
+    EarthEngineError,
     EarthEngineUnavailable,
     ee_available,
     init_ee,
@@ -36,6 +37,7 @@ from agristress.ingestion.loaders import (
     load_thermal_et,
 )
 from agristress.ingestion.stac_client import (
+    StacError,
     StacUnavailable,
     load_items,
     search,
@@ -50,31 +52,29 @@ from agristress.ingestion.synthetic import (
 )
 
 __all__ = [
-    # gee
+    "BBox",
+    "DEFAULT_SENSORS",
+    "EarthEngineError",
+    "EarthEngineUnavailable",
+    "StacError",
+    "StacUnavailable",
+    "SyntheticStack",
+    "ee_available",
     "init_ee",
     "load_collection",
-    "ee_available",
-    "EarthEngineUnavailable",
-    # stac
-    "search",
-    "load_items",
-    "search_sensor",
-    "stac_available",
-    "StacUnavailable",
-    # loaders
-    "load_sensor",
-    "load_family",
-    "load_optical_sr",
-    "load_sar_grd",
-    "load_soil_moisture",
-    "load_precip",
-    "load_thermal_et",
     "load_dem",
     "load_embeddings",
-    "DEFAULT_SENSORS",
-    # synthetic
-    "SyntheticStack",
-    "synth_stack_for_sensor",
+    "load_family",
+    "load_items",
+    "load_optical_sr",
+    "load_precip",
+    "load_sar_grd",
+    "load_sensor",
+    "load_soil_moisture",
+    "load_thermal_et",
     "normalize_bbox",
-    "BBox",
+    "search",
+    "search_sensor",
+    "stac_available",
+    "synth_stack_for_sensor",
 ]

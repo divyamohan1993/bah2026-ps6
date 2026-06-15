@@ -31,17 +31,17 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
     import xarray as xr  # noqa: F401
 
 __all__ = [
-    "LoadResult",
     "DEFAULT_SENSORS",
-    "load_sensor",
-    "load_family",
-    "load_optical_sr",
-    "load_sar_grd",
-    "load_soil_moisture",
-    "load_precip",
-    "load_thermal_et",
+    "LoadResult",
     "load_dem",
     "load_embeddings",
+    "load_family",
+    "load_optical_sr",
+    "load_precip",
+    "load_sar_grd",
+    "load_sensor",
+    "load_soil_moisture",
+    "load_thermal_et",
 ]
 
 #: A loaded family's data is one of these (labelled cube, or lightweight fallback).
@@ -113,7 +113,7 @@ def load_sensor(
     size: int = 32,
     as_xarray: bool = True,
     project: str | None = None,
-) -> "LoadResult":
+) -> LoadResult:
     """Load a single sensor over an AOI/date range as a standardized cube.
 
     Routing:
@@ -175,7 +175,7 @@ def load_family(
     sensor: SensorSpec | str | None = None,
     demo: bool = False,
     **kwargs: Any,
-) -> "LoadResult":
+) -> LoadResult:
     """Load a family's default (or chosen) sensor. See :func:`load_sensor` for kwargs."""
     if family not in DEFAULT_SENSORS:
         raise ValueError(
@@ -190,41 +190,41 @@ def load_family(
 # ---------------------------------------------------------------------------
 def load_optical_sr(aoi: BBox | Any = None, start: Any = None, end: Any = None,
                     *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                    **kwargs: Any) -> "LoadResult":
+                    **kwargs: Any) -> LoadResult:
     """Optical surface-reflectance family (Sentinel-2 default)."""
     return load_family("optical_sr", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
 def load_sar_grd(aoi: BBox | Any = None, start: Any = None, end: Any = None,
                  *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                 **kwargs: Any) -> "LoadResult":
+                 **kwargs: Any) -> LoadResult:
     """SAR ground-range-detected family (Sentinel-1 default)."""
     return load_family("sar_grd", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
 def load_soil_moisture(aoi: BBox | Any = None, start: Any = None, end: Any = None,
                        *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                       **kwargs: Any) -> "LoadResult":
+                       **kwargs: Any) -> LoadResult:
     """Soil-moisture family (SMAP default; also accepts L-band SAR)."""
     return load_family("soil_moisture", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
 def load_precip(aoi: BBox | Any = None, start: Any = None, end: Any = None,
                 *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                **kwargs: Any) -> "LoadResult":
+                **kwargs: Any) -> LoadResult:
     """Precipitation family (CHIRPS default)."""
     return load_family("precip", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
 def load_thermal_et(aoi: BBox | Any = None, start: Any = None, end: Any = None,
                     *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                    **kwargs: Any) -> "LoadResult":
+                    **kwargs: Any) -> LoadResult:
     """Thermal / evapotranspiration family (ECOSTRESS default)."""
     return load_family("thermal_et", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
 
 def load_dem(aoi: BBox | Any = None, *, sensor: SensorSpec | str | None = None,
-             demo: bool = False, **kwargs: Any) -> "LoadResult":
+             demo: bool = False, **kwargs: Any) -> LoadResult:
     """Digital-elevation family (Copernicus DEM GLO-30 default). Static: no date range."""
     kwargs.setdefault("n_time", 1)
     return load_family("dem", aoi, None, None, sensor=sensor, demo=demo, **kwargs)
@@ -232,7 +232,7 @@ def load_dem(aoi: BBox | Any = None, *, sensor: SensorSpec | str | None = None,
 
 def load_embeddings(aoi: BBox | Any = None, start: Any = None, end: Any = None,
                     *, sensor: SensorSpec | str | None = None, demo: bool = False,
-                    **kwargs: Any) -> "LoadResult":
+                    **kwargs: Any) -> LoadResult:
     """Learned satellite-embedding family (AlphaEarth annual default)."""
     return load_family("embeddings", aoi, start, end, sensor=sensor, demo=demo, **kwargs)
 
@@ -271,7 +271,7 @@ def _iso(value: Any) -> str:
     return str(value)
 
 
-def _maybe_xarray(stack: SyntheticStack, as_xarray: bool) -> "LoadResult":
+def _maybe_xarray(stack: SyntheticStack, as_xarray: bool) -> LoadResult:
     """Upgrade a SyntheticStack to xarray when requested and available."""
     if not as_xarray:
         return stack
