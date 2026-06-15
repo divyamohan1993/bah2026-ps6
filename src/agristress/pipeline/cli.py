@@ -55,7 +55,7 @@ def cmd_catalog() -> dict[str, Any]:
         import importlib
 
         catalog = importlib.import_module("agristress.catalog")
-        for name in ("summary", "get_registry", "registry"):
+        for name in ("registry_summary", "summary", "get_registry", "registry", "SENSOR_REGISTRY"):
             obj = getattr(catalog, name, None)
             data = obj() if callable(obj) else obj
             if data:

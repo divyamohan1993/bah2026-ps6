@@ -58,7 +58,9 @@ def test_cli_catalog_runs(capsys) -> None:
 
     summary = cmd_catalog()
     assert isinstance(summary, dict)
-    assert "optical" in summary or "registry" in summary
+    # Accept either the real registry summary (keyed by "total"/"by_type") or
+    # the defensive fallback dict (keyed by "optical"/"registry").
+    assert {"total", "by_type"} <= summary.keys() or "optical" in summary or "registry" in summary
 
 
 def test_cli_demo_runs(capsys) -> None:
