@@ -1,0 +1,32 @@
+# AgriStress — development & optional runtime stacks.
+# Installs core runtime first, then ML + serving + viz + dev tooling.
+-r requirements.txt
+
+# --- machine learning / deep learning ---
+scikit-learn~=1.5
+xgboost~=2.1
+lightgbm~=4.4
+torch~=2.3
+timm~=1.0
+
+# --- serving / tiling ---
+fastapi~=0.111
+uvicorn[standard]~=0.30
+rio-tiler~=6.6
+titiler.core~=0.18
+redis~=5.0
+
+# --- visualization ---
+folium~=0.17
+plotly~=5.22
+matplotlib~=3.9
+
+# --- dev tooling ---
+pytest~=8.2
+pytest-cov~=5.0
+ruff~=0.5
+black~=24.4
+mypy~=1.10
+pre-commit~=3.7
+types-PyYAML~=6.0
+types-redis~=4.6

@@ -1,0 +1,69 @@
+{
+ "type": "FeatureCollection",
+ "name": "mula_command_area",
+ "features": [
+  {
+   "type": "Feature",
+   "id": "mula_nira_command",
+   "properties": {
+    "command_id": "mula_nira_command",
+    "name": "Mula Command Area",
+    "state": "Maharashtra",
+    "district": "Ahmednagar",
+    "source": "Demo boundary (illustrative)",
+    "gca_ha": 80900
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       74.515,
+       19.3
+      ],
+      [
+       74.56,
+       19.275
+      ],
+      [
+       74.64,
+       19.285
+      ],
+      [
+       74.7,
+       19.32
+      ],
+      [
+       74.715,
+       19.37
+      ],
+      [
+       74.69,
+       19.42
+      ],
+      [
+       74.625,
+       19.44
+      ],
+      [
+       74.555,
+       19.43
+      ],
+      [
+       74.51,
+       19.395
+      ],
+      [
+       74.5,
+       19.345
+      ],
+      [
+       74.515,
+       19.3
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}
