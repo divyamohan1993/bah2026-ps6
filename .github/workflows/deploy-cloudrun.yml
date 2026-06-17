@@ -33,6 +33,12 @@ jobs:
     name: build + deploy (Cloud Run, scale-to-zero)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Skip (neutral, NOT failed) until the one-time WIF bootstrap has run and the
+    # repository Variables are set. Without GCP_WIF_PROVIDER the keyless auth step
+    # can't run, so the whole job is short-circuited instead of erroring the PR
+    # check. Run `bash scripts/setup_wif.sh` and add the printed repository
+    # Variables to enable it (see docs/CICD.md).
+    if: ${{ vars.GCP_WIF_PROVIDER != '' }}
 
     env:
       PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}

@@ -332,6 +332,22 @@ small continuous cost for no cold start. Earth Engine compute is billed to
 in-memory LRU if you don't need a shared cache. PMTiles-on-CDN tiles are
 effectively free at the edge versus a running TiTiler service.
 
+### Data stores — why no database (Pinecone/Redis not required)
+
+For the **scale-to-zero tier we deliberately run with no managed database**. The
+serving app keeps its hot state **in-memory per instance** (the `FeatureStore` +
+the LRU cache fallback) and reads any **real** data from **GCS / BigQuery** —
+both **pay-per-use** and **≈$0 when idle**, so they preserve the zero-cost
+profile. Adding an always-on managed DB or a managed **vector DB (Pinecone)**
+would introduce a fixed monthly cost and **break scale-to-zero**, so it is not
+used. Memorystore (Redis) stays **optional** — only add it when you raise
+`--max-instances` and need a shared cache across instances (see §4).
+
+If **vector similarity search** is needed later, keep it **serverless**: host a
+**FAISS / Parquet index on GCS** and load it into memory at startup, or use
+**BigQuery `VECTOR_SEARCH`** — both avoid a standing vector-DB service and stay
+within the zero-cost, pay-per-use model.
+
 **Security.**
 - **Secrets**: EE keys and Redis auth live in **Secret Manager**, mounted at
   runtime — never in the image, env file, or git (`.gitignore`/`.dockerignore`
