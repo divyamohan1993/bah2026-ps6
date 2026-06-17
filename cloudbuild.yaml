@@ -10,10 +10,11 @@ substitutions:
   _SERVICE: agristress-api
   _REPO: agristress
   # Cloud Run sizing — override per environment as needed.
+  # Default = scale-to-zero, pay-per-use: 0 instances idle, capped at 1.
   _MEMORY: "512Mi"
   _CPU: "1"
-  _MIN_INSTANCES: "1"
-  _MAX_INSTANCES: "10"
+  _MIN_INSTANCES: "0"
+  _MAX_INSTANCES: "1"
 
 images:
   - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${SHORT_SHA}"
@@ -63,5 +64,6 @@ steps:
       - --allow-unauthenticated
       - --min-instances=${_MIN_INSTANCES}
       - --max-instances=${_MAX_INSTANCES}
+      - --cpu-boost
       - --memory=${_MEMORY}
       - --cpu=${_CPU}

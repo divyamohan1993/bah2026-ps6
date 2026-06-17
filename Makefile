@@ -10,7 +10,7 @@ IMAGE       ?= $(REGION)-docker.pkg.dev/$(PROJECT_ID)/agristress/$(SERVICE):$(sh
 
 .DEFAULT_GOAL := help
 .PHONY: help install test lint serve docker-build docker-run compose-up \
-        cloudbuild deploy-cloudrun
+        cloudbuild deploy-cloudrun deploy-cloudrun-warm
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -42,7 +42,23 @@ cloudbuild: ## Build + push + deploy via Cloud Build (uses cloudbuild.yaml).
 	  --substitutions=_REGION=$(REGION),_SERVICE=$(SERVICE) .
 
 # Deploy straight to Cloud Run from source (Cloud Build builds infra/Dockerfile).
-deploy-cloudrun: ## Deploy the serving API to Cloud Run (PROJECT_ID/REGION overridable).
+# Default = scale-to-zero, pay-per-use: 0 instances when idle, capped at 1.
+deploy-cloudrun: ## Deploy to Cloud Run, scale-to-zero (min=0,max=1, pay-per-use).
+	gcloud run deploy $(SERVICE) \
+	  --source . \
+	  --project $(PROJECT_ID) \
+	  --region $(REGION) \
+	  --port $(PORT) \
+	  --allow-unauthenticated \
+	  --min-instances=0 \
+	  --max-instances=1 \
+	  --cpu-boost \
+	  --concurrency=80 \
+	  --memory=512Mi \
+	  --cpu=1
+
+# Always-warm variant (min=1) — no cold start, for judging/demo days.
+deploy-cloudrun-warm: ## Deploy to Cloud Run, always-warm (min=1,max=1) for demos.
 	gcloud run deploy $(SERVICE) \
 	  --source . \
 	  --project $(PROJECT_ID) \
@@ -50,6 +66,8 @@ deploy-cloudrun: ## Deploy the serving API to Cloud Run (PROJECT_ID/REGION overr
 	  --port $(PORT) \
 	  --allow-unauthenticated \
 	  --min-instances=1 \
-	  --max-instances=10 \
+	  --max-instances=1 \
+	  --cpu-boost \
+	  --concurrency=80 \
 	  --memory=512Mi \
 	  --cpu=1

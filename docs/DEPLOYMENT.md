@@ -39,7 +39,7 @@ Cloud.** It is accurate to *this* codebase: the FastAPI app
 | **Stateless** (instances are ephemeral, no sticky local disk) | Cache is externalized to Memorystore via `REDIS_URL`; gold products to GCS/BigQuery. The seeded in-memory demo store is for the credentials-free demo only. |
 | **Read-only filesystem except `/tmp`** (`/tmp` is in-memory and counts against memory) | The app writes nothing to disk on the request path. Any scratch (e.g. a rendered tile) stays in memory / Redis. |
 | **Request timeout** (default 300s, max 3600s) | Read endpoints are O(1); keep any EE export/orchestration calls async or push them to a Cloud Run **Job** so the request returns fast. |
-| **Cold starts** | Set `--min-instances=1` for the public API to keep one warm instance. The image is slim (`[serving]` extra only, multi-stage build) so starts are fast. |
+| **Cold starts** | Default is **scale-to-zero** (`--min-instances=0 --max-instances=1`) so you pay nothing when idle; `--cpu-boost` shortens the first-request startup. The image is slim (`[serving]` extra only, multi-stage build) so starts are fast. For demo days, `make deploy-cloudrun-warm` (`--min-instances=1`) keeps one always-warm instance. See [§4 Scale-to-zero profile](#scale-to-zero-pay-per-use-profile--recommended-default). |
 | **Memory / CPU sizing** | `--memory=512Mi --cpu=1` is plenty for the serving API (pure-wheel stack). The TiTiler/`[geo]` variant needs more (`--memory=2Gi`). |
 | **Image size / build** | Multi-stage `python:3.11-slim`, non-root user, `.dockerignore` keeps the build context to a few hundred KB (the 975 MB `.venv`, `.git`, caches, `outputs/`, `tests/` are excluded). |
 | **Concurrency model** | Cloud Run scales by *instances*; we run **1 Uvicorn worker** per instance (swap to gunicorn+`WEB_CONCURRENCY` only if you raise per-instance concurrency). |
@@ -80,17 +80,75 @@ gcloud run deploy agristress-api \
   --source . \
   --region "$REGION" \
   --allow-unauthenticated \
-  --min-instances=1 \
-  --max-instances=10 \
+  --min-instances=0 \
+  --max-instances=1 \
+  --cpu-boost \
+  --concurrency=80 \
   --memory=512Mi \
   --cpu=1 \
   --port=8080 \
   --set-env-vars=AGRISTRESS_CORS_ORIGINS="https://your-dashboard.example"
 ```
 
+This is the **scale-to-zero, pay-per-use** profile (recommended default):
+zero cost when idle, one instance on demand. For an always-warm demo instance,
+add `--min-instances=1` instead (or run `make deploy-cloudrun-warm`). See
+[Scale-to-zero profile](#scale-to-zero-pay-per-use-profile--recommended-default)
+below for the behaviour and cold-start tradeoff.
+
 > If `--source .` does not pick up `infra/Dockerfile` automatically in your
 > gcloud version, use **Option B** (explicit build) or copy/symlink the
 > Dockerfile to the repo root.
+
+### Scale-to-zero (pay-per-use) profile — recommended default
+
+The flags `--min-instances=0 --max-instances=1` make the service **scale to
+zero**: when no one is calling it, Cloud Run runs **zero instances and bills
+≈$0** (no idle compute charge). Cloud Run allocates CPU **only while a request
+is being processed**; the **first** request after an idle period spins an
+instance up, it serves traffic, and after a short idle window it scales back to
+zero. The `--max-instances=1` cap means there is **never more than one
+instance** — the service runs only when users call it. Deploy it with
+`make deploy-cloudrun`.
+
+**Cold-start tradeoff.** Because nothing is kept warm, the **first request after
+idle** pays a cold start: container image pull + process startup (a few seconds
+for the slim `[serving]` image — we lazy-import the heavy optional deps and the
+deterministic demo seed is fast). Subsequent requests hit the warm instance and
+are O(1). Mitigations:
+
+- **`--cpu-boost`** (already in the default) — gives the instance extra CPU
+  during startup so the cold start is noticeably shorter.
+- **`--min-instances=1`** — keep one instance always warm (no cold start) at a
+  small continuous cost. Use the **`deploy-cloudrun-warm`** target
+  (`make deploy-cloudrun-warm`) for judging / demo days.
+
+**Why `--max-instances=1` is a good fit here.** The serving **FeatureStore is
+in-memory per-instance** and the cache falls back to an **in-memory LRU** when
+`REDIS_URL` is unset — both are per-instance state. Capping at a single instance
+keeps that state **coherent** (every request hits the same store/cache) and
+makes **Redis / Memorystore optional** for this profile. Be precise about the
+limits this implies:
+
+- **(a) In-memory state is re-seeded on each cold start**, so it is *not* a
+  durable store. Persistent or real pilot data should still be read from
+  **GCS / BigQuery** at startup or per request. For the deterministic demo,
+  re-seeding on cold start is fine; for real data, treat the in-memory store as
+  a cache in front of GCS/BigQuery.
+- **(b) During a revision rollout** Cloud Run may **briefly run two instances**
+  (the new revision starts while the old one drains), momentarily exceeding the
+  cap. For an in-memory cache this is negligible (each just rebuilds its own),
+  but note it if you ever rely on strict single-instance invariants.
+- **(c) For horizontal scale**, raise `--max-instances` **and** add a shared
+  cache — **Memorystore** via `REDIS_URL` + a **Serverless VPC connector** (see
+  the Memorystore wiring below) — so the cache is no longer per-instance.
+
+**VM vs Cloud Run for this requirement.** A **VM is not preferred**: it runs
+**24/7**, so it costs money continuously and **cannot scale to zero** even when
+no one is using it. For the requirement "only runs when users call it,"
+**Cloud Run is the correct choice** — it is request-driven and idles at zero
+cost. (A VM/Vertex GPU is only warranted for the optional persistent DL training
+case in [§8](#8-when-you-do-need-a-vm--vertex-gpu).)
 
 ### Option B — build & push to Artifact Registry, then deploy (recommended for CI)
 
@@ -106,12 +164,12 @@ export IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/agristress/agristress-api:$
 gcloud builds submit --tag "$IMAGE" --gcs-log-dir="gs://${PROJECT_ID}_cloudbuild/logs" .
 #   …or locally:  docker build -f infra/Dockerfile -t "$IMAGE" . && docker push "$IMAGE"
 
-# 3) Deploy.
+# 3) Deploy (scale-to-zero default: 0 instances idle, capped at 1).
 gcloud run deploy agristress-api \
   --image "$IMAGE" \
   --region "$REGION" \
   --allow-unauthenticated \
-  --min-instances=1 --max-instances=10 \
+  --min-instances=0 --max-instances=1 --cpu-boost \
   --memory=512Mi --cpu=1 --port=8080
 ```
 
@@ -130,12 +188,14 @@ gcloud compute networks vpc-access connectors create agristress-vpc \
 # Store the Earth Engine service-account key in Secret Manager (never in the image).
 gcloud secrets create gee-sa-key --data-file=/path/to/gee-service-account.json
 
-# Redeploy with state + secrets + EE config bound in.
+# Redeploy with state + secrets + EE config bound in. Once a shared Redis cache
+# exists you can safely raise --max-instances for horizontal scale (the cache is
+# no longer per-instance); this block intentionally departs from the max=1 default.
 gcloud run deploy agristress-api \
   --image "$IMAGE" \
   --region "$REGION" \
   --allow-unauthenticated \
-  --min-instances=1 --max-instances=10 --memory=512Mi --cpu=1 --port=8080 \
+  --min-instances=0 --max-instances=10 --cpu-boost --memory=512Mi --cpu=1 --port=8080 \
   --vpc-connector=agristress-vpc \
   --set-env-vars=REDIS_URL="redis://${REDIS_HOST}:6379/0" \
   --set-env-vars=EE_PROJECT="${PROJECT_ID}" \
@@ -257,9 +317,12 @@ Everything else (serving, EE orchestration, batch, tiles) is serverless.
 
 ## 9. Cost / scaling & security notes
 
-**Cost / scaling.** Cloud Run **scales to zero** — you pay per request-second, so
-the public API with `--min-instances=1` costs only one always-warm small instance
-plus request load. Earth Engine compute is billed to `EE_PROJECT`. Memorystore
+**Cost / scaling.** Cloud Run **scales to zero** — you pay per request-second.
+The **recommended default** (`--min-instances=0 --max-instances=1`) costs ≈$0
+when idle and spins up a single instance on demand (`make deploy-cloudrun`); the
+always-warm variant (`--min-instances=1`, `make deploy-cloudrun-warm`) trades a
+small continuous cost for no cold start. Earth Engine compute is billed to
+`EE_PROJECT`. Memorystore
 (1 GB) and a VPC connector are the main fixed costs; drop them and rely on the
 in-memory LRU if you don't need a shared cache. PMTiles-on-CDN tiles are
 effectively free at the edge versus a running TiTiler service.
@@ -295,8 +358,10 @@ curl localhost:9000/health
 PORT=8099 agristress serve        # binds 0.0.0.0:8099
 # or: PORT=8099 python -m uvicorn agristress.serving.api:app --host 0.0.0.0 --port 8099
 
-# Deploy shortcut:
+# Deploy shortcut — scale-to-zero default (min=0,max=1, pay-per-use):
 make deploy-cloudrun PROJECT_ID=your-project REGION=asia-south1
+# Always-warm variant (min=1, no cold start) for judging/demo days:
+make deploy-cloudrun-warm PROJECT_ID=your-project REGION=asia-south1
 ```
 
 | Endpoint | Purpose |
