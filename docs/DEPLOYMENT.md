@@ -51,9 +51,9 @@ Cloud.** It is accurate to *this* codebase: the FastAPI app
 ```bash
 # Authenticate and pick the project.
 gcloud auth login
-gcloud config set project YOUR_PROJECT_ID
-export PROJECT_ID="$(gcloud config get-value project)"
-export REGION="asia-south1"            # Mumbai — closest to Indian command areas
+gcloud config set project dmjone
+export PROJECT_ID="$(gcloud config get-value project)"   # defaults to dmjone here
+export REGION="asia-east1"             # Taiwan — region used for this deployment
 
 # Enable the APIs we use.
 gcloud services enable \
@@ -359,9 +359,10 @@ PORT=8099 agristress serve        # binds 0.0.0.0:8099
 # or: PORT=8099 python -m uvicorn agristress.serving.api:app --host 0.0.0.0 --port 8099
 
 # Deploy shortcut — scale-to-zero default (min=0,max=1, pay-per-use):
-make deploy-cloudrun PROJECT_ID=your-project REGION=asia-south1
+# PROJECT_ID/REGION default to dmjone / asia-east1; override only if needed.
+make deploy-cloudrun
 # Always-warm variant (min=1, no cold start) for judging/demo days:
-make deploy-cloudrun-warm PROJECT_ID=your-project REGION=asia-south1
+make deploy-cloudrun-warm
 ```
 
 | Endpoint | Purpose |
