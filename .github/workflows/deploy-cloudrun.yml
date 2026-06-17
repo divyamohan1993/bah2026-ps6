@@ -1,0 +1,98 @@
+name: Deploy to Cloud Run
+
+# Keyless (no JSON key) build + deploy of the AgriStress serving image to Cloud
+# Run, authenticated via GitHub OIDC + Workload Identity Federation (WIF).
+#
+# ONE-TIME bootstrap (run once in Cloud Shell): `bash scripts/setup_wif.sh`,
+# then add the printed repository *Variables* (Settings -> Secrets and variables
+# -> Actions -> Variables). No service-account key is ever stored. See
+# docs/CICD.md for the full walkthrough.
+
+on:
+  push:
+    branches:
+      - main
+      # Feature branch so this PR auto-deploys while it is open.
+      # TODO: remove the line below after merging to main.
+      - claude/keen-lovelace-nmrhjw
+  workflow_dispatch:
+
+# id-token: write is REQUIRED — it lets GitHub mint the short-lived OIDC token
+# that WIF exchanges for Google credentials. contents: read is for checkout.
+permissions:
+  contents: read
+  id-token: write
+
+# Don't run two deploys of the same ref at once; let the newest win.
+concurrency:
+  group: deploy-cloudrun-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: build + deploy (Cloud Run, scale-to-zero)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      REGION: ${{ vars.GCP_REGION }}
+      GAR_REPO: ${{ vars.GAR_REPO }}
+      SERVICE: ${{ vars.CLOUD_RUN_SERVICE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Keyless auth: exchange the GitHub OIDC token for Google credentials via
+      # the Workload Identity Provider. No JSON key — all config is non-secret
+      # repository Variables created by scripts/setup_wif.sh.
+      - name: Authenticate to Google Cloud (Workload Identity Federation)
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Compute image reference
+        id: image
+        run: echo "image=${REGION}-docker.pkg.dev/${PROJECT_ID}/${GAR_REPO}/${SERVICE}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build image
+        run: docker build -f infra/Dockerfile -t "${{ steps.image.outputs.image }}" .
+
+      - name: Push image
+        run: docker push "${{ steps.image.outputs.image }}"
+
+      # Scale-to-zero, pay-per-use profile (min=0/max=1). The service stays
+      # public (--allow-unauthenticated) and idles at ~$0.
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "${SERVICE}" \
+            --image "${{ steps.image.outputs.image }}" \
+            --project "${PROJECT_ID}" \
+            --region "${REGION}" \
+            --min-instances=0 \
+            --max-instances=1 \
+            --cpu-boost \
+            --memory=512Mi \
+            --cpu=1 \
+            --port=8080 \
+            --allow-unauthenticated
+
+      - name: Print service URL
+        run: |
+          URL="$(gcloud run services describe "${SERVICE}" \
+            --project "${PROJECT_ID}" --region "${REGION}" \
+            --format='value(status.url)')"
+          echo "Service deployed at: ${URL}"
+          echo "### Cloud Run deployed :rocket:" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Service: \`${SERVICE}\` (${REGION})" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: ${URL}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Health: ${URL}/health" >> "$GITHUB_STEP_SUMMARY"

@@ -12,6 +12,11 @@ Cloud.** It is accurate to *this* codebase: the FastAPI app
 > (or Vertex AI GPU) is only warranted for *optional* persistent deep-learning
 > fusion / foundation-model fine-tuning — see [When you need a VM](#8-when-you-do-need-a-vm--vertex-gpu).
 
+> **Automated, keyless deploys:** for hands-off CI/CD see
+> [`docs/CICD.md`](./CICD.md) — GitHub Actions builds + deploys to Cloud Run on
+> every push using **Workload Identity Federation** (no service-account key).
+> For a public custom domain see [`docs/CUSTOM_DOMAIN.md`](./CUSTOM_DOMAIN.md).
+
 ---
 
 ## 1. Decision table — what runs where
