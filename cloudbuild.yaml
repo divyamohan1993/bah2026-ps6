@@ -1,0 +1,91 @@
+# Cloud Build pipeline — the SINGLE source of truth for building + deploying the
+# AgriStress serving image to Cloud Run. It:
+#   1) builds the slim serving image from infra/Dockerfile (build context = repo
+#      root, so the package + configs + dashboard are all in scope),
+#   2) pushes it to Artifact Registry, and
+#   3) deploys it to Cloud Run with the scale-to-zero profile.
+#
+# Why this file (and not `gcloud run deploy --source .`): the canonical
+# Dockerfile lives at infra/Dockerfile, NOT the repo root. `--source .` only
+# auto-detects a Dockerfile at the build root and otherwise silently falls back
+# to buildpacks — producing a different image. Building here with an explicit
+# `-f infra/Dockerfile` removes that ambiguity.
+#
+# Trigger it directly:
+#   gcloud builds submit --config cloudbuild.yaml \
+#     --substitutions=_PROJECT=dmjone,_REGION=asia-east1,_SERVICE=agristress-api,_REPO=agristress .
+# …or, the friendly way, via `scripts/deploy_cloudrun.sh` / `make deploy-cloudrun`.
+#
+# See docs/DEPLOYMENT.md for the full guide (Memorystore/VPC/secrets wiring).
+
+substitutions:
+  # _PROJECT defaults to the canonical project so the image target is
+  # deterministic from any context. Cloud Build also injects $PROJECT_ID (the
+  # build's own project); we use the explicit _PROJECT here to match the
+  # documented Artifact Registry path asia-east1-docker.pkg.dev/dmjone/...
+  _PROJECT: dmjone
+  _REGION: asia-east1
+  _SERVICE: agristress-api
+  _REPO: agristress
+  # Immutable tag for this build. `gcloud builds submit` populates $SHORT_SHA
+  # only when the source is a git repo with a commit; from a plain directory it
+  # is empty, which would make `image:` an invalid `repo:` reference. We always
+  # tag (and deploy) `latest` so a build from anywhere is valid, and add the
+  # $SHORT_SHA tag too when one is available.
+  _TAG: latest
+  # Cloud Run sizing — override per environment as needed.
+  # Default = scale-to-zero, pay-per-use: 0 instances idle, capped at 1.
+  _MEMORY: "512Mi"
+  _CPU: "1"
+  _MIN_INSTANCES: "0"
+  _MAX_INSTANCES: "1"
+
+images:
+  - "${_REGION}-docker.pkg.dev/${_PROJECT}/${_REPO}/${_SERVICE}:${_TAG}"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # 1) Build the slim serving image from infra/Dockerfile (context = repo root).
+  #    The trailing "." is the build context; "-f infra/Dockerfile" is explicit
+  #    so we never fall through to buildpacks.
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - infra/Dockerfile
+      - -t
+      - "${_REGION}-docker.pkg.dev/${_PROJECT}/${_REPO}/${_SERVICE}:${_TAG}"
+      - .
+
+  # 2) Push the image to Artifact Registry. Pushing the single resolved tag
+  #    (rather than --all-tags) keeps this valid even when $SHORT_SHA is empty.
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - "${_REGION}-docker.pkg.dev/${_PROJECT}/${_REPO}/${_SERVICE}:${_TAG}"
+
+  # 3) Deploy the freshly-built image to Cloud Run, scale-to-zero by default.
+  #    Add --vpc-connector / --set-env-vars=REDIS_URL=... / --set-secrets here to
+  #    wire Memorystore + Earth Engine (see docs/DEPLOYMENT.md §4).
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - "${_SERVICE}"
+      - --image
+      - "${_REGION}-docker.pkg.dev/${_PROJECT}/${_REPO}/${_SERVICE}:${_TAG}"
+      - --project=${_PROJECT}
+      - --region=${_REGION}
+      - --port=8080
+      - --allow-unauthenticated
+      - --min-instances=${_MIN_INSTANCES}
+      - --max-instances=${_MAX_INSTANCES}
+      - --cpu-boost
+      - --memory=${_MEMORY}
+      - --cpu=${_CPU}

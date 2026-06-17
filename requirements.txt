@@ -1,0 +1,19 @@
+# AgriStress — core runtime (pure-wheel science stack). Mirrors
+# [project.dependencies] in pyproject.toml. These install cleanly on any
+# CI runner (no system GDAL). For ML/serving/viz/geo/cloud extras install via:
+#   pip install -e ".[all]"
+# NOTE: the native-geo stack (GDAL-backed: rasterio, geopandas, pyproj) and the
+# Earth Engine / STAC cloud stack live in OPTIONAL extras ([geo], [cloud]) and
+# are NOT required to import the library or run the offline demo/test suite.
+
+# --- foundation / datacube science ---
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11
+PyYAML>=6.0
+python-dateutil>=2.8
+xarray>=2024.2
+h3>=4.0
+pydantic>=2.6
+typer>=0.12
+rich>=13.7

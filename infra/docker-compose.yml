@@ -1,0 +1,49 @@
+# Local development stack mirroring the Cloud Run topology:
+#   * api    — the FastAPI serving image (this repo, infra/Dockerfile)
+#   * redis  — Memorystore stand-in; the cache uses it via $REDIS_URL, else
+#              it silently falls back to the in-memory LRU backend.
+#
+# Usage (from the repo root):
+#   docker compose -f infra/docker-compose.yml up --build
+#   curl localhost:8080/health     # -> {"status":"ok","cache_backend":"redis",...}
+#
+# The build context is the repo root ('..') so the .dockerignore at the repo
+# root applies and pyproject/src/configs/dashboard are all in scope.
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    image: agristress-api:local
+    ports:
+      - "8080:8080"
+    environment:
+      # Cloud Run injects PORT; we set it explicitly here for parity.
+      PORT: "8080"
+      HOST: "0.0.0.0"
+      # Point the serving cache at the redis service (Memorystore in prod).
+      REDIS_URL: "redis://redis:6379/0"
+      # CORS for the dashboard during local dev (tighten in production).
+      AGRISTRESS_CORS_ORIGINS: "*"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    # Not published to the host by default; only the api service needs it.
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped

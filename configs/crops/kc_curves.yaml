@@ -1,0 +1,87 @@
+# FAO-56 single / dual crop coefficient (Kc) curves for canal-command crops.
+#
+# Source: FAO Irrigation & Drainage Paper 56, Tables 11 (Kc), 12 (stage lengths,
+# representative) and 22 (root depth Zr & depletion fraction p). Values are
+# sub-humid-climate references (RHmin ~= 45 %, u2 ~= 2 m/s); use
+# `kc.adjust_kc_mid_for_climate` for other climates.
+#
+# Schema per crop:
+#   stage_lengths_days: [L_ini, L_dev, L_mid, L_late]  -> total growing season
+#   kc_ini / kc_mid / kc_end : single crop coefficients [-]
+#   zr_m       : maximum effective rooting depth [m]
+#   depletion_p: soil-water depletion fraction for no stress (p) [-]
+#   ponded     : (optional) true for paddy rice (continuous submergence / AWD)
+#
+# Stage interpolation (kc.kc_curve):
+#   ini  : flat Kc_ini
+#   dev  : linear  Kc_ini -> Kc_mid
+#   mid  : flat Kc_mid
+#   late : linear  Kc_mid -> Kc_end
+
+crops:
+
+  rice:
+    description: "Paddy rice (continuously submerged / AWD)"
+    stage_lengths_days: [30, 30, 60, 30]   # 150 d season
+    kc_ini: 1.05
+    kc_mid: 1.20
+    kc_end: 0.90
+    zr_m: 0.50
+    depletion_p: 0.20
+    ponded: true
+
+  wheat:
+    description: "Winter / spring wheat"
+    stage_lengths_days: [30, 40, 40, 30]   # 140 d season
+    kc_ini: 0.30
+    kc_mid: 1.15
+    kc_end: 0.30          # Kc at harvest (dry grain); 0.25-0.40 typical
+    zr_m: 1.50
+    depletion_p: 0.55
+
+  maize:
+    description: "Maize (grain)"
+    stage_lengths_days: [30, 40, 50, 30]   # 150 d season
+    kc_ini: 0.30
+    kc_mid: 1.20
+    kc_end: 0.50          # field maize, dry grain
+    zr_m: 1.00
+    depletion_p: 0.55
+
+  cotton:
+    description: "Cotton"
+    stage_lengths_days: [30, 50, 60, 55]   # 195 d season
+    kc_ini: 0.35
+    kc_mid: 1.18          # 1.15-1.20
+    kc_end: 0.60          # 0.70 if picked green; 0.50 fully senesced
+    zr_m: 1.35
+    depletion_p: 0.65
+
+  sugarcane:
+    description: "Sugarcane (plant cane, ~12 month)"
+    stage_lengths_days: [35, 60, 190, 120] # 405 d season
+    kc_ini: 0.40
+    kc_mid: 1.25
+    kc_end: 0.75
+    zr_m: 1.50
+    depletion_p: 0.65
+
+  pulses:
+    description: "Pulses / legumes (gram, lentil, pea)"
+    stage_lengths_days: [20, 30, 35, 20]   # 105 d season
+    kc_ini: 0.40
+    kc_mid: 1.15
+    kc_end: 0.35
+    zr_m: 0.70
+    depletion_p: 0.45
+
+# NDVI -> Kc regression default coefficients (Kc = a*NDVI + b).
+# Calibrated against FAO-56 Kc for closed canopies (Kc ~ 1.15 @ NDVI ~ 0.86).
+ndvi_kc:
+  a: 1.457
+  b: -0.1725
+
+# Climate adjustment reference conditions for Kc_mid / Kc_end (FAO-56 Eq. 62/65).
+climate_reference:
+  rh_min: 45.0
+  u2: 2.0

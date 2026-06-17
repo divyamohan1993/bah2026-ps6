@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>AgriStress — Crop-type, Moisture-Stress &amp; Irrigation Advisory · ISRO BAH 2026 PS6</title>
+    <meta
+      name="description"
+      content="AgriStress dashboard: phenology-aware moisture-stress detection and 8-day irrigation advisory for canal command areas, fusing optical &amp; microwave satellite data."
+    />
+
+    <!-- MapLibre GL JS (CDN, no build step) -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Full-screen map -->
+    <div id="map" aria-label="AgriStress command-area map"></div>
+
+    <!-- Top bar -->
+    <header id="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="26" height="26">
+            <defs>
+              <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#2dd4bf" />
+                <stop offset="1" stop-color="#38bdf8" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M16 2c5 4 8 8 8 13a8 8 0 1 1-16 0c0-5 3-9 8-13z"
+              fill="url(#lg)"
+            />
+            <path d="M16 11v12M16 23c-3 0-5-2-5-5M16 19c2 0 4-1 4-4" stroke="#08222a" stroke-width="1.4" fill="none" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">AgriStress</div>
+          <div class="brand-sub">Crop-type · Moisture-stress · Irrigation advisory</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span id="aoi-name" class="aoi-chip">Mula Command Area · Maharashtra</span>
+        <span id="data-badge" class="badge demo" title="Data source">● DEMO DATA</span>
+      </div>
+    </header>
+
+    <!-- Sidebar / control panel -->
+    <aside id="sidebar">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Layers</h2>
+          <span class="hint">ISRO BAH 2026 · PS6</span>
+        </div>
+        <div id="layer-toggles" class="layer-toggles"><!-- built by app.js --></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 id="legend-title">Legend</h2>
+        </div>
+        <div id="legend-body" class="legend"><!-- built by app.js --></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Command-area roll-up</h2>
+          <span class="hint" id="rollup-date-hint"></span>
+        </div>
+        <div id="rollup-body" class="rollup"><!-- built by app.js --></div>
+      </section>
+
+      <section class="panel panel-foot">
+        <div class="foot-row">
+          <span>API</span><code id="api-base">http://localhost:8000</code>
+        </div>
+        <div class="foot-note">
+          Falls back to bundled demo data when the API is offline. Click any field
+          for crop, growth stage, stress, Dr/RAW &amp; recommendation.
+        </div>
+      </section>
+    </aside>
+
+    <!-- Bottom time-slider bar -->
+    <footer id="timebar">
+      <button id="play-btn" class="play" title="Play / pause season">▶</button>
+      <div class="time-meta">
+        <span class="time-season">Kharif 2025 · 8-day steps</span>
+        <span id="date-label" class="time-date">—</span>
+        <span id="step-label" class="time-step"></span>
+      </div>
+      <input id="time-slider" class="time-slider" type="range" min="0" max="16" value="16" aria-label="Season time slider (8-day steps)" />
+    </footer>
+
+    <!-- Mobile sidebar toggle -->
+    <button id="panel-toggle" aria-label="Toggle panel">☰</button>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+    <script>
+      // Mobile: collapse/expand sidebar.
+      (function () {
+        var btn = document.getElementById("panel-toggle");
+        var sb = document.getElementById("sidebar");
+        if (btn && sb)
+          btn.addEventListener("click", function () {
+            sb.classList.toggle("open");
+          });
+      })();
+    </script>
+  </body>
+</html>

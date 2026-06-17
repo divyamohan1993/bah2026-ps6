@@ -1,0 +1,152 @@
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ---------------------------------------------------------------------------
+# Virtual environments
+# ---------------------------------------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+.python-version
+.conda/
+
+# ---------------------------------------------------------------------------
+# Environment / secrets
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+service-account*.json
+gee-credentials*.json
+.earthengine/
+
+# ---------------------------------------------------------------------------
+# Testing / coverage / type-checking caches
+# ---------------------------------------------------------------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+
+# ---------------------------------------------------------------------------
+# Notebooks
+# ---------------------------------------------------------------------------
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+profile_default/
+ipython_config.py
+
+# ---------------------------------------------------------------------------
+# Data (kept out of git; layout documented in data/README.md)
+# ---------------------------------------------------------------------------
+data/raw/
+data/interim/
+data/processed/
+data/external/
+!data/.gitkeep
+!data/README.md
+
+# ---------------------------------------------------------------------------
+# Geospatial / datacube artifacts
+# ---------------------------------------------------------------------------
+*.tif
+*.tiff
+*.cog
+*.zarr/
+*.nc
+*.nc4
+*.h5
+*.hdf
+*.grib
+*.grib2
+*.shp
+*.shx
+*.dbf
+*.gpkg
+*.geojsonl
+*.mbtiles
+*.pmtiles
+*.SAFE/
+*.zip
+tiles/
+cogs/
+datacubes/
+
+# ---------------------------------------------------------------------------
+# Model weights / artifacts / experiment tracking
+# ---------------------------------------------------------------------------
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.pickle
+*.joblib
+*.h5ad
+*.ckpt
+*.safetensors
+models/checkpoints/
+models/artifacts/
+mlruns/
+wandb/
+lightning_logs/
+
+# ---------------------------------------------------------------------------
+# DVC
+# ---------------------------------------------------------------------------
+.dvc/cache/
+.dvc/tmp/
+.dvc/plots/
+*.dvc
+
+# ---------------------------------------------------------------------------
+# Node / dashboard tooling (vanilla MapLibre needs no build, but keep safe)
+# ---------------------------------------------------------------------------
+node_modules/
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.parcel-cache/
+npm-debug.log*
+yarn-error.log*
+
+# ---------------------------------------------------------------------------
+# OS / editor
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
