@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1.7
+# ---------------------------------------------------------------------------
+# AgriStress *tiler* image (optional, heavier) — Cloud Run-ready.
+#
+# Same serving app, but with the native-geo `[geo]` extra so the dynamic COG
+# tile endpoints (TiTiler / rio-tiler, mounted at /cog by the app factory when
+# the lib is present) can read Cloud-Optimized GeoTIFFs from GCS. This pulls in
+# GDAL/PROJ and is therefore much larger than infra/Dockerfile — deploy it as a
+# *separate* Cloud Run service (e.g. agristress-tiler) only if you serve COGs.
+#
+# Build:  docker build -f infra/Dockerfile.tiler -t agristress-tiler .
+# ---------------------------------------------------------------------------
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8080 \
+    HOST=0.0.0.0
+
+# GDAL runtime libs for rasterio/rioxarray, plus curl for the healthcheck.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl gdal-bin libgdal-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system app \
+    && useradd --system --gid app --create-home --home-dir /home/app app
+
+WORKDIR /app
+
+COPY pyproject.toml README.md ./
+COPY src/ ./src/
+COPY configs/ ./configs/
+COPY dashboard/ ./dashboard/
+
+# TiTiler itself is not a declared extra; install it alongside the geo stack.
+RUN pip install --upgrade pip \
+    && pip install ".[serving,geo]" "titiler.core>=0.18"
+
+USER app
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
+    CMD curl -fsS "http://127.0.0.1:${PORT}/health" || exit 1
+
+CMD exec uvicorn agristress.serving.api:app --host 0.0.0.0 --port "${PORT}" --workers 1

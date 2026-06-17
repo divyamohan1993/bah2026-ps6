@@ -1,0 +1,67 @@
+# Cloud Build pipeline: build the serving image, push it to Artifact Registry,
+# and deploy it to Cloud Run. Trigger with:
+#
+#   gcloud builds submit --config cloudbuild.yaml \
+#     --substitutions=_REGION=asia-south1,_SERVICE=agristress-api .
+#
+# See docs/DEPLOYMENT.md for the full guide (Memorystore/VPC/secrets wiring).
+substitutions:
+  _REGION: asia-south1
+  _SERVICE: agristress-api
+  _REPO: agristress
+  # Cloud Run sizing — override per environment as needed.
+  _MEMORY: "512Mi"
+  _CPU: "1"
+  _MIN_INSTANCES: "1"
+  _MAX_INSTANCES: "10"
+
+images:
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${SHORT_SHA}"
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:latest"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # 1) Build the slim serving image from infra/Dockerfile (context = repo root).
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - infra/Dockerfile
+      - -t
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${SHORT_SHA}"
+      - -t
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:latest"
+      - .
+
+  # 2) Push both tags to Artifact Registry.
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}"
+
+  # 3) Deploy the freshly-built image to Cloud Run.
+  #    Add --vpc-connector / --set-env-vars=REDIS_URL=... / --set-secrets here to
+  #    wire Memorystore + Earth Engine (see docs/DEPLOYMENT.md §4).
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - "${_SERVICE}"
+      - --image
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE}:${SHORT_SHA}"
+      - --region
+      - "${_REGION}"
+      - --port
+      - "8080"
+      - --allow-unauthenticated
+      - --min-instances=${_MIN_INSTANCES}
+      - --max-instances=${_MAX_INSTANCES}
+      - --memory=${_MEMORY}
+      - --cpu=${_CPU}

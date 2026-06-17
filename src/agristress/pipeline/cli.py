@@ -21,6 +21,7 @@ plain callable wrapper.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from typing import Any
 
@@ -29,6 +30,15 @@ from typing import Any
 # --------------------------------------------------------------------------
 _DEFAULT_AOI = "CMD-001"
 _DEFAULT_SEASON = "kharif"
+
+# Serving bind defaults. Cloud Run (and most container PaaS) inject the listen
+# port via ``$PORT`` and require the server to bind ``0.0.0.0`` so the platform
+# health-check / router can reach it. We honour ``$HOST``/``$PORT`` here so the
+# same image runs locally, in docker-compose and on Cloud Run with no flags.
+# 0.0.0.0 is intentional: inside a container we must bind all interfaces so the
+# Cloud Run / docker port-mapping can route to the process.
+_DEFAULT_HOST = os.environ.get("HOST", "0.0.0.0")
+_DEFAULT_PORT = int(os.environ.get("PORT", "8080"))
 
 
 def _print(obj: Any) -> None:
@@ -139,8 +149,16 @@ def cmd_advisory(aoi: str = _DEFAULT_AOI, season: str = _DEFAULT_SEASON) -> dict
     return _stage("advisory", aoi, season)
 
 
-def cmd_serve(host: str = "127.0.0.1", port: int = 8000, reload: bool = False) -> None:
-    """Launch the FastAPI serving app via uvicorn."""
+def cmd_serve(host: str | None = None, port: int | None = None, reload: bool = False) -> None:
+    """Launch the FastAPI serving app via uvicorn.
+
+    ``host``/``port`` fall back to ``$HOST``/``$PORT`` (then ``0.0.0.0:8080``),
+    so the container image is Cloud Run-ready with no arguments: Cloud Run sets
+    ``$PORT`` and expects the process to listen on ``0.0.0.0:$PORT``.
+    """
+
+    host = host or _DEFAULT_HOST
+    port = _DEFAULT_PORT if port is None else port
 
     try:
         import uvicorn
@@ -211,11 +229,11 @@ def _build_typer() -> Any | None:
 
     @cli.command()
     def serve(
-        host: str = typer.Option("127.0.0.1", help="Bind host."),
-        port: int = typer.Option(8000, help="Bind port."),
+        host: str = typer.Option(_DEFAULT_HOST, help="Bind host (env: HOST)."),
+        port: int = typer.Option(_DEFAULT_PORT, help="Bind port (env: PORT)."),
         reload: bool = typer.Option(False, help="Auto-reload (dev)."),
     ) -> None:
-        """Launch the FastAPI serving app via uvicorn."""
+        """Launch the FastAPI serving app via uvicorn (Cloud Run-ready)."""
         cmd_serve(host, port, reload)
 
     return cli
@@ -239,8 +257,8 @@ def _argparse_main(argv: list[str] | None = None) -> int:
     for verb in ("ingest", "fuse", "features", "train", "advisory", "demo"):
         _add_aoi_season(sub.add_parser(verb))
     serve_p = sub.add_parser("serve", help="Launch the serving API.")
-    serve_p.add_argument("--host", default="127.0.0.1")
-    serve_p.add_argument("--port", type=int, default=8000)
+    serve_p.add_argument("--host", default=_DEFAULT_HOST, help="Bind host (env: HOST).")
+    serve_p.add_argument("--port", type=int, default=_DEFAULT_PORT, help="Bind port (env: PORT).")
     serve_p.add_argument("--reload", action="store_true")
 
     args = parser.parse_args(argv)

@@ -21,6 +21,7 @@ The authoritative blueprint and its companion deep-dives live in [`docs/`](./doc
 - [`docs/PLATFORM_O1.md`](./docs/PLATFORM_O1.md) — O(1) platform, H3 indexing & serving
 - [`docs/MODELS.md`](./docs/MODELS.md) — crop-type, phenology & moisture-stress models
 - [`docs/IRRIGATION_ADVISORY.md`](./docs/IRRIGATION_ADVISORY.md) — FAO-56 ET0 / water-balance advisory engine
+- [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Google Cloud Run deployment guide (serving API + dashboard; no VM required)
 
 ## Quickstart
 
